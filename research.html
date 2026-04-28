@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Research — Anh Q. Nguyen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #f7f4ef;
+      --surface: #ffffff;
+      --ink:     #1a1a1a;
+      --muted:   #6b6458;
+      --accent:  #7b3f00;
+      --accent2: #c47a2b;
+      --border:  #e0d9d0;
+      --serif:   'EB Garamond', Georgia, serif;
+      --sans:    'DM Sans', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(247,244,239,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+    nav a {
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: var(--accent); }
+    nav a.active { color: var(--accent); }
+
+    /* ── LAYOUT ── */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 28px 80px;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      padding: 56px 0 44px;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 {
+      font-family: var(--serif);
+      font-size: 2.4em;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+    .page-header p {
+      font-family: var(--serif);
+      font-size: 1.06em;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.8;
+    }
+
+    /* ── RESEARCH PROJECT ── */
+    .project {
+      padding: 56px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .project:last-of-type { border-bottom: none; }
+
+    .project-label {
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 10px;
+    }
+
+    .project h2 {
+      font-family: var(--serif);
+      font-size: 1.75em;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 20px;
+      max-width: 680px;
+    }
+
+    /* two-column: text left, media right */
+    .project-body {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 48px;
+      align-items: start;
+    }
+    .project-body.reverse {
+      grid-template-columns: 340px 1fr;
+    }
+    .project-body.reverse .project-text { order: 2; }
+    .project-body.reverse .project-media { order: 1; }
+
+    .project-text p {
+      font-family: var(--serif);
+      font-size: 1.05em;
+      color: #2e2a25;
+      line-height: 1.88;
+      margin-bottom: 24px;
+    }
+
+    /* ── MEDIA ── */
+    .project-media {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .media-card {
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+      background: #000;
+    }
+    .media-card video {
+      width: 100%;
+      display: block;
+      border-radius: 6px;
+    }
+    .media-card img {
+      width: 100%;
+      display: block;
+      border-radius: 6px;
+    }
+    .media-caption {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-style: italic;
+      margin-top: -6px;
+    }
+
+    /* side-by-side videos */
+    .video-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .video-pair-item { display: flex; flex-direction: column; gap: 6px; }
+    .video-pair-item span {
+      font-size: 11.5px;
+      color: var(--muted);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* ── PUBLICATION CHIP ── */
+    .pub-chip {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fff8f0;
+      border: 1px solid #e8d5bc;
+      border-left: 3px solid var(--accent2);
+      border-radius: 5px;
+      padding: 12px 16px;
+      margin-top: 4px;
+      text-decoration: none;
+      transition: box-shadow 0.2s;
+      max-width: 100%;
+    }
+    .pub-chip:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
+    .pub-chip-icon { color: var(--accent2); flex-shrink: 0; margin-top: 2px; }
+    .pub-chip-text { display: flex; flex-direction: column; gap: 2px; }
+    .pub-chip-title {
+      font-family: var(--serif);
+      font-size: 0.97em;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+    .pub-chip-venue {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .pub-chip-venue strong {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    /* ── FOOTER ── */
+    .footer-inner {
+      margin-top: 60px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 12.5px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .footer-inner a { color: var(--accent2); text-decoration: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 680px) {
+      .project-body, .project-body.reverse {
+        grid-template-columns: 1fr;
+      }
+      .project-body.reverse .project-text { order: 1; }
+      .project-body.reverse .project-media { order: 2; }
+      .page-header h1 { font-size: 1.8em; }
+      .project h2 { font-size: 1.4em; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="research.html" class="active">Research</a></li>
+    <li><a href="publications.html">Publications</a></li>
+  </ul>
+</nav>
+
+<main class="page">
+
+  <div class="page-header">
+    <h1>Research</h1>
+    <p>I use theoretical and computational models to understand how biological tissues deform, flow, and maintain integrity — with connections to development, disease, and the physics of disordered materials.</p>
+  </div>
+
+  <!-- PROJECT 1 -->
+  <div class="project">
+    <p class="project-label">Project 01</p>
+    <h2>Tissue Plasticity &amp; Avalanches</h2>
+
+    <div class="project-body">
+      <div class="project-text">
+        <p>
+          During development and under normal physiological conditions, biological tissues are continuously subjected to substantial mechanical stresses. In response to large deformations, cells must undergo multicellular rearrangements to maintain tissue integrity and robustness. How these events are connected in time and space, however, remains unknown.
+        </p>
+        <p>
+          Using theoretical modeling, we study the mechanical plasticity of cell monolayers under large deformations. Our results suggest that the jamming–unjamming (solid–fluid) transition can vary significantly depending on the degree of deformation, implying that tissues are highly unconventional materials. We also demonstrate how large deformations are accommodated through a series of cellular rearrangements — analogous to avalanches in non-living disordered materials.
+        </p>
+        <p>
+          We find that these "tissue avalanches" are governed by stress redistribution and the spatial distribution of soft or vulnerable spots that are more prone to rearrangement. Finally, we propose a simple, experimentally accessible framework to infer tissue-level stress and predict avalanches from static images alone.
+        </p>
+
+        <a class="pub-chip" href="https://doi.org/10.1038/s41467-025-58526-7" target="_blank">
+          <svg class="pub-chip-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div class="pub-chip-text">
+            <span class="pub-chip-title">Origin of yield stress and mechanical plasticity in model biological tissues</span>
+            <span class="pub-chip-venue">Nguyen, Huang &amp; Bi · <strong>Nature Communications</strong> 16, 3260 (2025)</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="project-media">
+        <!-- PLACEHOLDER: replace src with your actual video file, e.g. avalanche.mp4 -->
+        <div class="media-card">
+          <video autoplay loop muted playsinline
+            src="QSmovie_p3.88dgamma0.005seed28final5online-video-cutter.com.mp4">
+          </video>
+        </div>
+        <p class="media-caption">Vertex model simulation showing tissue rearrangements under shear deformation</p>
+
+        <!-- Uncomment and replace src when you have the figure images -->
+        <!--
+        <div class="media-card">
+          <img src="Untitled2.001.jpeg" alt="Tissue plasticity figure" />
+        </div>
+        <div class="media-card">
+          <img src="figure3.png" alt="Avalanche analysis" />
+        </div>
+        -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECT 2 -->
+  <div class="project">
+    <p class="project-label">Project 02</p>
+    <h2>Tissue Response to Compression</h2>
+
+    <div class="project-body reverse">
+      <div class="project-text">
+        <p>
+          Cellular unjamming — the collective fluidization of cell motion — has been linked to many biological processes, including development, wound repair, and tumor growth. However, because multiple cellular and molecular mechanisms may operate simultaneously, the role of compressive stress in unjamming transitions remains poorly understood.
+        </p>
+        <p>
+          We investigate which mechanism dominates in a dense, mechanically stressed monolayer. Long-term compression triggers cell arrest in benign epithelial cells while enhancing cancer cell migration — transitions correlated with cell shape. We find that cadherin-mediated cell–cell adhesion regulates these differential responses and is an important driver of unjamming in stressed monolayers.
+        </p>
+        <p>
+          Importantly, compressive stress does not induce epithelial–mesenchymal transition in unjammed cells. Traction force microscopy further reveals the attenuation of traction stresses in compressed cells within the bulk monolayer regardless of cell type. Together, strengthened intercellular adhesion and attenuated traction forces lead to tissue fluidization and may impact collective motion in breast cancer progression.
+        </p>
+
+        <a class="pub-chip" href="https://www.frontiersin.org/journals/cell-and-developmental-biology/articles/10.3389/fcell.2022.933042/full" target="_blank">
+          <svg class="pub-chip-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div class="pub-chip-text">
+            <span class="pub-chip-title">Compressive stress drives adhesion-dependent unjamming transitions in breast cancer cell migration</span>
+            <span class="pub-chip-venue">Cai, Nguyen et al. · <strong>Frontiers in Cell and Developmental Biology</strong> (2022)</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="project-media">
+        <!-- Side-by-side videos -->
+        <div class="video-pair">
+          <div class="video-pair-item">
+            <div class="media-card">
+              <video autoplay loop muted playsinline src="MCF10Acontrol.mp4"></video>
+            </div>
+            <span>Normal condition</span>
+          </div>
+          <div class="video-pair-item">
+            <div class="media-card">
+              <video autoplay loop muted playsinline src="MCF10Acompress.mp4"></video>
+            </div>
+            <span>Under compression</span>
+          </div>
+        </div>
+        <p class="media-caption">MCF10A epithelial cells under normal vs. vertically compressed conditions</p>
+
+        <!-- Phase diagram image placeholder -->
+        <!--
+        <div class="media-card">
+          <img src="phasediagram.001.jpeg" alt="Phase diagram" />
+        </div>
+        -->
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-inner">
+    <span>© 2026 Anh Q. Nguyen</span>
+    <span>Hosted on <a href="https://pages.github.com" target="_blank">GitHub Pages</a></span>
+  </div>
+
+</main>
+
+</body>
+</html>
