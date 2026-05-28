@@ -164,6 +164,25 @@
     }
     .pub-link:hover { text-decoration: underline; }
 
+    /* ── SIM BUTTON ── */
+    .sim-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 36px;
+      padding: 11px 22px;
+      background: var(--ink);
+      color: #f7f4ef;
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .sim-btn:hover { background: var(--accent); transform: translateY(-1px); }
+
     /* ── BACK LINK ── */
     .back-link {
       display: inline-flex;
@@ -263,10 +282,16 @@
       </div>
     </section>
 
-    <a class="back-link" href="index.html">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Back to Home
-    </a>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:48px;">
+      <a class="back-link" style="margin-top:0;" href="index.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to Home
+      </a>
+      <a class="sim-btn" href="simulation.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Try the Live Simulation
+      </a>
+    </div>
 
     <div class="footer-inner">
       <span>© 2026 Anh Q. Nguyen</span>

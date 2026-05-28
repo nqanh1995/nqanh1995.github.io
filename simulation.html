@@ -37,8 +37,8 @@
   .sitenav a:hover { color: #30a0d8; }
   .sitenav a.active { color: #30a0d8; }
   :root {
-    --bg:#06080b; --surf:#0c1016; --bord:#1a2530; --bord2:#223040;
-    --txt:#bccdd8; --dim:#3a5060; --acc:#30a0d8; --gold:#e8b030;
+    --bg:#f7f4ef; --surf:#ffffff; --bord:#e0d9d0; --bord2:#d0c9c0;
+    --txt:#1a1a1a; --dim:#6b6458; --acc:#30a0d8; --gold:#c47a2b;
     --mono:'Courier New',monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
@@ -46,7 +46,7 @@
     font-size:12.5px;display:flex;flex-direction:column;align-items:center;padding:0;}
   header{width:100%;max-width:1060px;display:flex;align-items:baseline;gap:12px;
     margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--bord);}
-  h1{font-size:.80rem;font-weight:400;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);}
+  h1{font-size:.80rem;font-weight:400;letter-spacing:.22em;text-transform:uppercase;color:#7b3f00;}
   .sub{font-size:.64rem;color:var(--dim);}
   .layout{display:flex;gap:12px;align-items:flex-start;width:100%;max-width:1060px;}
   .left{display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
@@ -59,29 +59,29 @@
     border-bottom:1px solid var(--bord);padding-bottom:3px;}
   .cg{background:var(--surf);border:1px solid var(--bord);border-radius:3px;padding:8px 10px;}
   .cg label{display:flex;justify-content:space-between;font-size:.65rem;color:var(--dim);margin-bottom:5px;}
-  .cg label b{color:var(--acc);font-weight:400;}
-  input[type=range]{width:100%;accent-color:var(--acc);height:3px;cursor:pointer;}
+  .cg label b{color:#7b3f00;font-weight:600;}
+  input[type=range]{width:100%;accent-color:#7b3f00;height:3px;cursor:pointer;}
   .fixed{background:var(--surf);border:1px solid var(--bord);border-radius:3px;
     padding:7px 10px;font-size:.60rem;color:var(--dim);line-height:1.9;}
-  .fixed span{color:#4a7088;}
-  .run{width:100%;padding:11px;background:linear-gradient(135deg,#082030,#0a2d40);
-    border:1px solid var(--acc);border-radius:3px;color:var(--acc);font-family:var(--mono);
+  .fixed span{color:#c47a2b;}
+  .run{width:100%;padding:11px;background:#f0ebe3;
+    border:1px solid #c47a2b;border-radius:3px;color:#7b3f00;font-family:var(--mono);
     font-size:.74rem;letter-spacing:.18em;cursor:pointer;transition:all .15s;}
-  .run:hover{background:linear-gradient(135deg,#0a2d40,#0d3850);}
-  .run.live{background:linear-gradient(135deg,#072820,#0a3020);border-color:#38c870;color:#38c870;}
+  .run:hover{background:#e8dfd4;}
+  .run.live{background:#e8f5ec;border-color:#38a860;color:#2a7a48;}
   .btns{display:flex;gap:7px;}
   .btns button{flex:1;padding:7px;background:var(--surf);border:1px solid var(--bord2);
     border-radius:3px;color:var(--txt);font-family:var(--mono);font-size:.64rem;
     letter-spacing:.08em;cursor:pointer;}
-  .btns button:hover{background:#162030;}
+  .btns button:hover{background:#f0ebe3;}
   .btns button:disabled{opacity:.3;cursor:default;}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:5px;
     background:var(--surf);border:1px solid var(--bord);border-radius:3px;padding:8px 10px;}
   .st{display:flex;flex-direction:column;}
   .sl{font-size:.56rem;color:var(--dim);text-transform:uppercase;letter-spacing:.07em;}
-  .sv{font-size:.86rem;color:var(--acc);}
+  .sv{font-size:.86rem;color:#7b3f00;}
   .wrap{position:relative;}
-  #ovl{position:absolute;inset:0;background:rgba(4,6,8,.82);display:flex;
+  #ovl{position:absolute;inset:0;background:rgba(247,244,239,.82);display:flex;
     align-items:center;justify-content:center;transition:opacity .25s;}
   #ovl.off{opacity:0;pointer-events:none;}
   #ovl p{font-size:.63rem;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;}
@@ -162,11 +162,11 @@
     </div>
     <div style="font-size:.59rem;color:var(--dim);line-height:1.85;background:var(--surf);
       border:1px solid var(--bord);border-radius:3px;padding:8px 10px">
-      <b style="color:#4a7088">Equations:</b><br>
+      <b style="color:#c47a2b">Equations:</b><br>
       ṙ = v₀ê(θ) + F_el<br>
       θ̇ = √(2Dr)·η(t)<br>
       F = ε(1−r/σ)r̂ [r&lt;σ]<br><br>
-      <b style="color:#4a7088">Events (per cell/step):</b><br>
+      <b style="color:#c47a2b">Events (per cell/step):</b><br>
       🟡 P_div = k_div·(a−1.4)·dt<br>
       &nbsp;&nbsp;&nbsp;&nbsp;if a &gt; 1.4<br>
       🔴 P_apo = k_apo·(0.5−a)·dt<br>
