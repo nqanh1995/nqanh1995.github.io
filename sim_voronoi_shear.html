@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>2D Voronoi Model Under Shear — Anh Q. Nguyen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f4ef;--surf:#ffffff;--bord:#e0d9d0;--bord2:#d0c9c0;
+  --ink:#1a1a1a;--muted:#6b6458;--acc:#7b3f00;--acc2:#c47a2b;
+  --sans:'DM Sans',system-ui,sans-serif;--mono:'Courier New',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;min-height:100vh;}
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(247,244,239,.94);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--bord);padding:13px 0;}
+nav ul{list-style:none;display:flex;gap:28px;max-width:1300px;margin:0 auto;padding:0 28px;}
+nav a{font-size:14px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;transition:color .2s;}
+nav a:hover{color:var(--acc);}
+nav a.active{color:var(--acc);}
+/* WRAPPER */
+.wrapper{max-width:1300px;margin:0 auto;padding:0 28px 60px;}
+.page-header{padding:18px 0 14px;border-bottom:1px solid var(--bord);margin-bottom:16px;}
+.page-header .back{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;
+  color:var(--muted);text-decoration:none;margin-bottom:8px;letter-spacing:.04em;}
+.page-header .back:hover{color:var(--acc);}
+.page-header h1{font-family:'EB Garamond',serif;font-size:1.9em;font-weight:500;color:var(--ink);margin-bottom:4px;}
+.page-header p{font-size:14.5px;color:var(--muted);max-width:620px;line-height:1.55;}
+/* SIM LAYOUT */
+.sim-layout{display:grid;grid-template-columns:auto 204px auto;gap:16px;align-items:start;}
+.sim-left{display:flex;flex-direction:column;gap:8px;}
+.plots-col{display:flex;flex-direction:column;gap:8px;}
+canvas{display:block;border:1px solid var(--bord);border-radius:4px;background:#f0ede8;}
+/* PANEL */
+.panel{background:var(--surf);border:1px solid var(--bord);border-radius:6px;padding:11px;
+  display:flex;flex-direction:column;gap:7px;position:sticky;top:52px;}
+.sec{font-size:11.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--bord);padding-bottom:3px;margin-top:2px;}
+.sec:first-child{margin-top:0;}
+.cg{display:flex;flex-direction:column;gap:3px;}
+.cg label{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);}
+.cg label b{color:var(--acc);font-weight:600;font-family:var(--mono);}
+input[type=range]{width:100%;accent-color:var(--acc);height:3px;cursor:pointer;}
+input[type=number]{width:62px;padding:2px 5px;border:1px solid var(--bord2);border-radius:3px;
+  font-size:13px;font-family:var(--mono);color:var(--ink);background:var(--bg);}
+input[type=number]:disabled{opacity:.4;cursor:not-allowed;}
+.osc-row{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--muted);}
+.osc-row input[type=checkbox]{accent-color:var(--acc);cursor:pointer;}
+.amp-row{display:flex;align-items:center;justify-content:space-between;
+  font-size:13px;color:var(--muted);padding-left:17px;}
+.run-btn{width:100%;padding:7px;background:var(--bg);border:1px solid var(--acc2);
+  border-radius:3px;color:var(--acc);font-family:var(--mono);font-size:.85rem;
+  letter-spacing:.12em;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:#f0e8dc;}
+.run-btn.live{background:#e8f5ec;border-color:#38a860;color:#2a7a48;}
+.btns{display:flex;gap:5px;}
+.btns button{flex:1;padding:5px;background:var(--bg);border:1px solid var(--bord2);
+  border-radius:3px;color:var(--ink);font-family:var(--mono);font-size:.8rem;
+  letter-spacing:.04em;cursor:pointer;}
+.btns button:hover{background:#f0e8dc;}
+.btns button:disabled{opacity:.35;cursor:default;}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.st{display:flex;flex-direction:column;}
+.sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.sv{font-size:.95rem;color:var(--acc);font-family:var(--mono);}
+/* Colormap legend */
+.legend-wrap{display:flex;flex-direction:column;gap:2px;}
+.legend-bar{height:9px;border-radius:3px;
+  background:linear-gradient(90deg,#5094cc,#f0ede8 45%,#d04030);}
+.legend-ticks{display:flex;justify-content:space-between;
+  font-size:11.5px;color:var(--muted);font-family:var(--mono);}
+.legend-mid{display:flex;justify-content:center;
+  font-size:11px;color:var(--acc2);font-family:var(--mono);margin-top:-1px;}
+/* Fixed params row */
+.fixed-row{font-size:12.5px;color:var(--muted);line-height:1.65;}
+.fixed-row span{color:var(--acc2);font-family:var(--mono);}
+</style>
+</head>
+<body>
+<nav>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="research.html">Research</a></li>
+    <li><a href="publications.html">Publications</a></li>
+    <li><a href="simulation.html" class="active">Simulations</a></li>
+  </ul>
+</nav>
+<div class="wrapper">
+  <div class="page-header">
+    <a class="back" href="simulation.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      All Simulations
+    </a>
+    <h1>2D Voronoi Model Under Shear</h1>
+    <p>Quasi-static (AQS) shear of a 2D confluent tissue. Each strain step δγ applies an affine shear then relaxes via FIRE energy minimization. Cells colored by shape index q = P/√A relative to p₀.</p>
+  </div>
+  <div class="sim-layout">
+    <div class="sim-left">
+      <canvas id="cMain" width="460" height="460"></canvas>
+    </div>
+    <div class="panel">
+      <div class="sec">Parameters</div>
+      <div class="cg">
+        <label>Shape index p₀ <b id="lp">3.85</b></label>
+        <input type="range" id="sp" min="3.60" max="4.20" step="0.01" value="3.85">
+      </div>
+      <div class="cg">
+        <label>Area stiffness k<sub>A</sub> <b id="lk">0.00</b></label>
+        <input type="range" id="sk" min="0.00" max="1.00" step="0.05" value="0.00">
+      </div>
+      <div class="fixed-row">
+        <span>N</span>=100 &nbsp;<span>δγ</span>=0.001 &nbsp;<span>k<sub>P</sub></span>=1 &nbsp;<span>p₀*</span>≈3.81
+      </div>
+      <div class="sec">Protocol</div>
+      <div class="osc-row">
+        <input type="checkbox" id="oscCheck">
+        <label for="oscCheck">Oscillatory shear</label>
+      </div>
+      <div class="amp-row">
+        <label for="ampInput">γ<sub>max</sub></label>
+        <input type="number" id="ampInput" min="0.1" max="3.0" step="0.05" value="0.50" disabled>
+      </div>
+      <button class="run-btn" id="bRun">▶&nbsp; Run</button>
+      <div class="btns">
+        <button id="bPause" disabled>Pause</button>
+        <button id="bReset">Reset</button>
+      </div>
+      <div class="sec">Stats</div>
+      <div class="stats">
+        <div class="st"><span class="sl">Strain γ</span><span class="sv" id="sGam">0.000</span></div>
+        <div class="st"><span class="sl">Stress σ<sub>xy</sub></span><span class="sv" id="sSig">—</span></div>
+        <div class="st"><span class="sl">Total T1s</span><span class="sv" id="sT1">0</span></div>
+        <div class="st"><span class="sl">Step</span><span class="sv" id="sStep">0</span></div>
+        <div class="st"><span class="sl">FIRE steps</span><span class="sv" id="sFire">—</span></div>
+        <div class="st"><span class="sl">Max |F|</span><span class="sv" id="sMaxF">—</span></div>
+      </div>
+      <div class="sec">Shape index q = P/√A</div>
+      <div class="legend-wrap">
+        <div class="legend-bar"></div>
+        <div class="legend-ticks">
+          <span>3.50</span><span>3.81</span><span>4.20</span>
+        </div>
+        <div class="legend-mid">▲ p₀* (rigid transition)</div>
+      </div>
+    </div>
+    <div class="plots-col">
+      <canvas id="cSS"></canvas>
+      <canvas id="cT1"></canvas>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+'use strict';
+
+// ── Constants ────────────────────────────────────────────────────────────────
+const N = 100;
+const L = Math.sqrt(N);          // = 10
+const KP = 1.0;
+const A0_CONST = 1.0;
+const DGAMMA = 0.001;
+const FTOL = 1e-4;
+const FIRE_MAX = 400;
+const PATIENCE = 80;
+const STRESS_DG = 1e-5;
+
+// ── Mutable state ─────────────────────────────────────────────────────────────
+let posX = new Float64Array(N);
+let posY = new Float64Array(N);
+let gamma = 0, stepCount = 0, totalT1s = 0;
+let gammaHistory = [], sigmaHistory = [], t1PerStep = [];
+let cellAreas  = new Float64Array(N);
+let cellPerims = new Float64Array(N);
+let cellPolys  = [];   // [{x,y}[]] polygon vertices per cell (wrapped)
+let prevAdj = null;
+
+// UI state
+let running = false, paused = false;
+let p0Val = 3.85, kAVal = 0.0;
+let oscillatory = false, amplitude = 0.50;
+let cyclePhase = 0, cycleStepInPhase = 0; // 0=up, 1=down, 2=back-up
+let rafId = null, runToken = 0;
+
+// ── Simple RNG (mulberry32) ───────────────────────────────────────────────────
+function makeRng(seed) {
+  let s = seed >>> 0;
+  return () => { s+=0x6D2B79F5; let t=Math.imul(s^s>>>15,1|s); t^=t+Math.imul(t^t>>>7,61|t); return ((t^t>>>14)>>>0)/4294967296; };
+}
+
+// ── Physics helpers ───────────────────────────────────────────────────────────
+function circumcenter(x1,y1,x2,y2,x3,y3) {
+  const D = 2*(x1*(y2-y3)+x2*(y3-y1)+x3*(y1-y2));
+  if (Math.abs(D)<1e-12) return [0.5*(x1+x2),0.5*(y1+y2)];
+  const a=x1*x1+y1*y1, b=x2*x2+y2*y2, c=x3*x3+y3*y3;
+  return [(a*(y2-y3)+b*(y3-y1)+c*(y1-y2))/D,(a*(x3-x2)+b*(x1-x3)+c*(x2-x1))/D];
+}
+
+// Direct port of circ_jacobian from geometry.hpp (Bi-2016 App. A)
+function circJacobian(x1,y1,x2,y2,x3,y3,dhx,dhy) {
+  const s=x3*(y2-y1)+x2*(y1-y3)+x1*(y3-y2), den=2*s*s;
+  if (Math.abs(den)<1e-24){for(let i=0;i<6;i++)dhx[i]=dhy[i]=0;return;}
+  dhx[0]=-((y2-y3)*(2*x1*(x3*(y2-y1)+x2*(y1-y3))+(y1-y2)*(x3*x3+(y1-y3)*(y2-y3))+x2*x2*(y3-y1)+x1*x1*(y3-y2)))/den;
+  dhx[1]=((x3*x3*(y1-y2)-2*x2*(x3*(y1-y2)+x1*(y2-y3))+x2*x2*(y1-y3)+(x1*x1+(y1-y2)*(y1-y3))*(y2-y3))*(y1-y3))/den;
+  dhx[2]=-((y1-y2)*(x3*x3*(y2-y1)+2*x2*x3*(y1-y3)+(x1*x1+(y1-y2)*(y1-y3))*(y2-y3)+x2*x2*(y3-y1)+2*x1*x3*(y3-y2)))/den;
+  dhx[3]=((y2-y3)*(x1*x1*(x2-x3)+x2*x2*x3+x3*(y1-y2)*(y1-y2)-x2*(x3*x3+(y1-y3)*(y1-y3))+x1*(-x2*x2+x3*x3+2*y1*y2-y2*y2-2*y1*y3+y3*y3)))/den;
+  dhx[4]=-((y1-y3)*(x1*x1*(x2-x3)+x2*x2*x3-x2*x3*x3-x3*(y1-y2)*(y1-y2)+x1*(-x2*x2+x3*x3+(y2-y3)*(y2-y3))+x2*(y1-y3)*(y1-2*y2+y3)))/den;
+  dhx[5]=((y1-y2)*(x1*x1*(x2-x3)+x2*x2*x3+x2*(-x3*x3+(y1-y3)*(y1-y3))-x1*(x2*x2-x3*x3+(y2-y3)*(y2-y3))-x3*(y1-y2)*(y1+y2-2*y3)))/den;
+  dhy[0]=-((x2-x3)*(-(y1-y2)*(x3*x3+(y1-y3)*(y2-y3))+x2*x2*(y1-y3)+x1*x1*(y2-y3)+2*x1*(x3*(y1-y2)+x2*(y3-y1))))/den;
+  dhy[1]=-((x1-x3)*(x3*x3*(y1-y2)-2*x2*(x3*(y1-y2)+x1*(y2-y3))+x2*x2*(y1-y3)+(x1*x1+(y1-y2)*(y1-y3))*(y2-y3)))/den;
+  dhy[2]=((x1-x2)*(x3*x3*(y2-y1)+2*x2*x3*(y1-y3)+(x1*x1+(y1-y2)*(y1-y3))*(y2-y3)+x2*x2*(y3-y1)+2*x1*x3*(y3-y2)))/den;
+  dhy[3]=-((x2-x3)*(x1*x1*(x2-x3)+x2*x2*x3+x3*(y1-y2)*(y1-y2)-x2*(x3*x3+(y1-y3)*(y1-y3))+x1*(-x2*x2+x3*x3+2*y1*y2-y2*y2-2*y1*y3+y3*y3)))/den;
+  dhy[4]=((x1-x3)*(x1*x1*(x2-x3)+x2*x2*x3-x2*x3*x3-x3*(y1-y2)*(y1-y2)+x1*(-x2*x2+x3*x3+(y2-y3)*(y2-y3))+x2*(y1-y3)*(y1-2*y2+y3)))/den;
+  dhy[5]=-((x1-x2)*(x1*x1*(x2-x3)+x2*x2*x3+x2*(-x3*x3+(y1-y3)*(y1-y3))-x1*(x2*x2-x3*x3+(y2-y3)*(y2-y3))-x3*(y1-y2)*(y1+y2-2*y3)))/den;
+}
+
+function wrapLE(pX,pY,gam) {
+  const gr=gam-Math.round(gam);
+  for(let i=0;i<N;i++){
+    const ny=Math.floor(pY[i]/L);
+    pY[i]-=ny*L; pX[i]-=ny*gr*L;
+    pX[i]=((pX[i]%L)+L)%L;
+  }
+}
+
+function affineShear(pX,pY,dg) {
+  for(let i=0;i<N;i++) pX[i]+=dg*(pY[i]-0.5*L);
+}
+
+// Build 3×3 image grid (9N points, center block = indices [4N, 5N))
+function build9N(pX,pY,gam) {
+  const gr=gam-Math.round(gam);
+  const ext=new Float64Array(9*N*2);
+  const orig=new Int32Array(9*N);
+  let k=0;
+  for(let ny=-1;ny<=1;ny++) for(let nx=-1;nx<=1;nx++) for(let i=0;i<N;i++){
+    ext[2*k]=pX[i]+nx*L+ny*gr*L; ext[2*k+1]=pY[i]+ny*L; orig[k++]=i;
+  }
+  return {ext,orig};
+}
+
+// Core: compute energy, analytic forces, geometry, and cell polygons
+// Uses exact circumcenter Jacobian (Bi-2016 Appendix A)
+function energyAndForce(pX,pY,gam,kA,p0) {
+  const P0=p0*Math.sqrt(A0_CONST);
+  const {ext,orig}=build9N(pX,pY,gam);
+  const del=new d3.Delaunay(ext);
+  const T=del.triangles, HE=del.halfedges;
+
+  // Starting halfedge per vertex
+  const sHE=new Int32Array(9*N).fill(-1);
+  for(let e=0;e<T.length;e++) if(sHE[T[e]]===-1) sHE[T[e]]=e;
+
+  const fX=new Float64Array(N), fY=new Float64Array(N);
+  const areas=new Float64Array(N), perims=new Float64Array(N);
+  const polys=new Array(N);
+  const dhx=new Float64Array(6), dhy=new Float64Array(6);
+  let E=0;
+
+  for(let i=0;i<N;i++){
+    const ci=4*N+i;
+    let e0=sHE[ci]; if(e0===-1) continue;
+
+    // Walk CCW triangle fan around ci using halfedge structure
+    // prev(e) ends at ci; halfedges[prev(e)] starts at ci in next triangle
+    const fanT=[],fanK=[];
+    let e=e0, safe=0;
+    do{
+      fanT.push(Math.floor(e/3)); fanK.push(e%3);
+      const ep=e%3===0?e+2:e-1;        // prev edge in triangle (ends at ci)
+      const opp=HE[ep];
+      if(opp===-1||++safe>40) break;
+      e=opp;
+    }while(e!==e0);
+
+    const nv=fanT.length; if(nv<3) continue;
+
+    // For each triangle T_m in fan, k_m = position of ci:
+    // h[m] = circumcenter(ci, tri[k_m+1], tri[k_m+2])
+    const hx=new Float64Array(nv), hy=new Float64Array(nv);
+    const g2=new Int32Array(nv), g3=new Int32Array(nv);
+
+    for(let m=0;m<nv;m++){
+      const t=fanT[m],k=fanK[m];
+      const j2=T[3*t+(k+1)%3], j3=T[3*t+(k+2)%3];
+      g2[m]=j2; g3[m]=j3;
+      const cc=circumcenter(pX[i],pY[i],ext[2*j2],ext[2*j2+1],ext[2*j3],ext[2*j3+1]);
+      hx[m]=cc[0]; hy[m]=cc[1];
+    }
+
+    // Signed area (shoelace); ensure CCW
+    let sA=0;
+    for(let m=0;m<nv;m++){const n=(m+1)%nv; sA+=hx[m]*hy[n]-hx[n]*hy[m];}
+    sA*=0.5;
+    if(sA<0){ // reverse to CCW
+      hx.reverse(); hy.reverse(); g2.reverse(); g3.reverse();
+      for(let m=0;m<nv;m++){const tmp=g2[m];g2[m]=g3[m];g3[m]=tmp;}
+      sA=-sA;
+    }
+    areas[i]=sA;
+
+    // Perimeter
+    let per=0;
+    for(let m=0;m<nv;m++){const n=(m+1)%nv,dx=hx[n]-hx[m],dy=hy[n]-hy[m];per+=Math.sqrt(dx*dx+dy*dy);}
+    perims[i]=per;
+
+    // Wrap polygon vertices near pos[i] for rendering (LE-aware)
+    const gfrac=gam-Math.round(gam);
+    const poly=[];
+    for(let m=0;m<nv;m++){
+      let vx=hx[m],vy=hy[m];
+      const ny_=Math.round((vy-pY[i])/L);
+      vy-=ny_*L; vx-=ny_*gfrac*L;
+      vx-=Math.round((vx-pX[i])/L)*L;
+      poly.push({x:vx,y:vy});
+    }
+    polys[i]=poly;
+
+    // Energy and gradient coefficients
+    const da=sA-A0_CONST, dp=per-P0;
+    E+=kA*da*da+KP*dp*dp;
+    const coA=kA*da, coP=KP*dp;
+
+    // Analytic forces via circumcenter Jacobian
+    for(let m=0;m<nv;m++){
+      const mp=(m+nv-1)%nv, mn=(m+1)%nv;
+      const ex=hx[m]-hx[mp],ey=hy[m]-hy[mp];   // ein
+      const ox=hx[mn]-hx[m],oy=hy[mn]-hy[m];    // eout
+      const Li=Math.sqrt(ex*ex+ey*ey), Lo=Math.sqrt(ox*ox+oy*oy);
+      let dEx=coA*(hy[mn]-hy[mp]);
+      let dEy=coA*(-(hx[mn]-hx[mp]));
+      if(Li>1e-12){dEx+=2*coP*(ex/Li);dEy+=2*coP*(ey/Li);}
+      if(Lo>1e-12){dEx+=2*coP*(-ox/Lo);dEy+=2*coP*(-oy/Lo);}
+
+      // h[m] = circumcenter(pos[i]=g1, ext[g2[m]]=g2, ext[g3[m]]=g3)
+      circJacobian(pX[i],pY[i],ext[2*g2[m]],ext[2*g2[m]+1],ext[2*g3[m]],ext[2*g3[m]+1],dhx,dhy);
+
+      fX[i]  -=dEx*dhx[0]+dEy*dhy[0]; fY[i]  -=dEx*dhx[3]+dEy*dhy[3];
+      const o2=orig[g2[m]];
+      fX[o2] -=dEx*dhx[1]+dEy*dhy[1]; fY[o2] -=dEx*dhx[4]+dEy*dhy[4];
+      const o3=orig[g3[m]];
+      fX[o3] -=dEx*dhx[2]+dEy*dhy[2]; fY[o3] -=dEx*dhx[5]+dEy*dhy[5];
+    }
+  }
+
+  let maxF=0;
+  for(let i=0;i<N;i++) maxF=Math.max(maxF,Math.sqrt(fX[i]**2+fY[i]**2));
+  return{E,fX,fY,areas,perims,polys,maxF};
+}
+
+// Shear stress via central finite difference (no re-minimization)
+function shearStress(pX,pY,gam,kA,p0){
+  const dg=STRESS_DG;
+  const ax=new Float64Array(pX),ay=new Float64Array(pY);
+  const bx=new Float64Array(pX),by=new Float64Array(pY);
+  for(let i=0;i<N;i++){ax[i]+=dg*(ay[i]-0.5*L); bx[i]-=dg*(by[i]-0.5*L);}
+  const Ep=energyAndForce(ax,ay,gam+dg,kA,p0).E;
+  const Em=energyAndForce(bx,by,gam-dg,kA,p0).E;
+  return(Ep-Em)/(2*dg*L*L);
+}
+
+// FIRE 2.0 energy minimization (in-place on pX, pY)
+function fireMinimize(pX,pY,gam,kA,p0){
+  const vX=new Float64Array(N),vY=new Float64Array(N);
+  let dt=0.02,alpha=0.1,npos=0,stale=0;
+  let res=energyAndForce(pX,pY,gam,kA,p0);
+  let {fX,fY,maxF}=res; let bestF=maxF, steps=0;
+
+  while(steps<FIRE_MAX&&maxF>FTOL){
+    let P=0;
+    for(let i=0;i<N;i++) P+=fX[i]*vX[i]+fY[i]*vY[i];
+    if(P>0){
+      if(++npos>5){dt=Math.min(dt*1.1,0.1);alpha*=0.99;}
+    }else{
+      npos=0;dt*=0.5;alpha=0.1;
+      vX.fill(0);vY.fill(0);
+    }
+    let fn=0,vn=0;
+    for(let i=0;i<N;i++){fn+=fX[i]**2+fY[i]**2;vn+=vX[i]**2+vY[i]**2;}
+    fn=Math.sqrt(fn);vn=Math.sqrt(vn);
+    if(fn>1e-300){const s=alpha*vn/fn;for(let i=0;i<N;i++){vX[i]=(1-alpha)*vX[i]+s*fX[i];vY[i]=(1-alpha)*vY[i]+s*fY[i];}}
+    for(let i=0;i<N;i++){vX[i]+=dt*fX[i];vY[i]+=dt*fY[i];pX[i]+=dt*vX[i];pY[i]+=dt*vY[i];}
+    wrapLE(pX,pY,gam);
+    res=energyAndForce(pX,pY,gam,kA,p0);
+    fX=res.fX;fY=res.fY;maxF=res.maxF; steps++;
+    if(maxF<bestF*0.9999){bestF=maxF;stale=0;}else if(++stale>=PATIENCE)break;
+  }
+  return{steps,maxF,res};
+}
+
+// Adjacency via standard periodic images + fan-walk around center-block particles.
+// Two reasons to avoid LE-sheared images here:
+//   1. Image-to-image edges in the full 9N Delaunay fluctuate spuriously between steps.
+//   2. When gfrac = γ−round(γ) crosses a half-integer, all dy=±1 image positions
+//      jump by ~L in x, causing massive fake T1 counts even with no real event.
+// Standard images (no gfrac offset) are stable across all γ values.
+// The fan-walk around center particles [4N,5N) mirrors the C++ adjacency().
+function getAdj(pX,pY,gam){
+  const ext=new Float64Array(9*N*2), orig=new Int32Array(9*N);
+  let k=0;
+  for(let ny=-1;ny<=1;ny++) for(let nx=-1;nx<=1;nx++) for(let i=0;i<N;i++){
+    ext[2*k]=pX[i]+nx*L; ext[2*k+1]=pY[i]+ny*L; orig[k++]=i;
+  }
+  const del=new d3.Delaunay(ext);
+  const T=del.triangles, HE=del.halfedges;
+  const sHE=new Int32Array(9*N).fill(-1);
+  for(let e=0;e<T.length;e++) if(sHE[T[e]]===-1) sHE[T[e]]=e;
+  const adj=new Set();
+  for(let i=0;i<N;i++){
+    const ci=4*N+i;
+    let e0=sHE[ci]; if(e0===-1) continue;
+    let e=e0, safe=0;
+    do{
+      const t=Math.floor(e/3), kk=e%3;
+      // g2 = the "next" vertex in this triangle (first non-ci neighbor)
+      const nb=orig[T[3*t+(kk+1)%3]];
+      if(nb!==i) adj.add(i<nb?`${i},${nb}`:`${nb},${i}`);
+      const ep=kk===0?e+2:e-1;
+      const opp=HE[ep];
+      if(opp===-1||++safe>40) break;
+      e=opp;
+    }while(e!==e0);
+  }
+  return adj;
+}
+
+function t1count(a1,a2){let d=0;for(const e of a1)if(!a2.has(e))d++;for(const e of a2)if(!a1.has(e))d++;return d>>1;}
+
+function nextDgamma(){
+  if(!oscillatory) return DGAMMA;
+  const ns=Math.max(1,Math.round(amplitude/DGAMMA));
+  if(cyclePhase===0){       // 0 → +amp
+    if(++cycleStepInPhase>=ns){cyclePhase=1;cycleStepInPhase=0;}
+    return DGAMMA;
+  }else if(cyclePhase===1){ // +amp → -amp
+    if(++cycleStepInPhase>=2*ns){cyclePhase=2;cycleStepInPhase=0;}
+    return -DGAMMA;
+  }else{                    // -amp → 0
+    if(++cycleStepInPhase>=ns){cyclePhase=0;cycleStepInPhase=0;}
+    return DGAMMA;
+  }
+}
+
+// ── Rendering ────────────────────────────────────────────────────────────────
+const cMain=document.getElementById('cMain');
+const cSS  =document.getElementById('cSS');
+const cT1  =document.getElementById('cT1');
+let ctxM, ctxS, ctxT;
+const MAIN_W=460, MAIN_H=460;
+const PLOT_W=275, PLOT_H=224;   // each plot; two stack to ≈ MAIN_H
+
+// Fixed absolute colormap: q=3.50 (blue) → 3.81 (white, p₀*) → 4.20 (red)
+const CMAP_LO=3.50, CMAP_MID=3.81, CMAP_HI=4.20;
+const BLUE=[80,148,204], WHITE=[242,238,230], RED=[208,64,48];
+
+function cellColor(area,perim){
+  if(area<1e-6) return'#ddd';
+  const q=perim/Math.sqrt(area);
+  let r,g,b;
+  if(q<=CMAP_MID){
+    const s=Math.max(0,Math.min(1,(CMAP_MID-q)/(CMAP_MID-CMAP_LO)));
+    r=(WHITE[0]*(1-s)+BLUE[0]*s)|0;
+    g=(WHITE[1]*(1-s)+BLUE[1]*s)|0;
+    b=(WHITE[2]*(1-s)+BLUE[2]*s)|0;
+  }else{
+    const s=Math.max(0,Math.min(1,(q-CMAP_MID)/(CMAP_HI-CMAP_MID)));
+    r=(WHITE[0]*(1-s)+RED[0]*s)|0;
+    g=(WHITE[1]*(1-s)+RED[1]*s)|0;
+    b=(WHITE[2]*(1-s)+RED[2]*s)|0;
+  }
+  return`rgb(${r},${g},${b})`;
+}
+
+function setupCanvases(){
+  const dpr=window.devicePixelRatio||1;
+  cMain.width=MAIN_W*dpr; cMain.height=MAIN_H*dpr;
+  cMain.style.width=MAIN_W+'px'; cMain.style.height=MAIN_H+'px';
+  ctxM=cMain.getContext('2d'); ctxM.scale(dpr,dpr);
+
+  cSS.width=PLOT_W*dpr; cSS.height=PLOT_H*dpr;
+  cSS.style.width=PLOT_W+'px'; cSS.style.height=PLOT_H+'px';
+  ctxS=cSS.getContext('2d'); ctxS.scale(dpr,dpr);
+
+  cT1.width=PLOT_W*dpr; cT1.height=PLOT_H*dpr;
+  cT1.style.width=PLOT_W+'px'; cT1.style.height=PLOT_H+'px';
+  ctxT=cT1.getContext('2d'); ctxT.scale(dpr,dpr);
+}
+
+function renderCells(){
+  ctxM.clearRect(0,0,MAIN_W,MAIN_H);
+  ctxM.fillStyle='#f0ede8';ctxM.fillRect(0,0,MAIN_W,MAIN_H);
+  const sc=MAIN_W/L;
+  ctxM.save();ctxM.beginPath();ctxM.rect(0,0,MAIN_W,MAIN_H);ctxM.clip();
+  for(let i=0;i<N;i++){
+    const poly=cellPolys[i];if(!poly||poly.length<3)continue;
+    ctxM.beginPath();
+    for(let m=0;m<poly.length;m++){
+      const sx=poly[m].x*sc,sy=MAIN_H-poly[m].y*sc;
+      m===0?ctxM.moveTo(sx,sy):ctxM.lineTo(sx,sy);
+    }
+    ctxM.closePath();
+    ctxM.fillStyle=cellColor(cellAreas[i],cellPerims[i]);
+    ctxM.fill();
+    ctxM.strokeStyle='rgba(100,70,40,0.30)';ctxM.lineWidth=0.8;ctxM.stroke();
+  }
+  ctxM.restore();
+  for(let i=0;i<N;i++){
+    ctxM.beginPath();
+    ctxM.arc(posX[i]*sc,MAIN_H-posY[i]*sc,1.1,0,2*Math.PI);
+    ctxM.fillStyle='rgba(80,50,25,0.4)';ctxM.fill();
+  }
+  ctxM.strokeStyle='#d0c9c0';ctxM.lineWidth=1;ctxM.strokeRect(0,0,MAIN_W,MAIN_H);
+}
+
+// Shared x-range computation (same window for both plots)
+function gammaRange(){
+  const g=gammaHistory;
+  let lo=g[0],hi=g[0];
+  for(const v of g){if(v<lo)lo=v;if(v>hi)hi=v;}
+  if(hi-lo<0.01){lo-=0.05;hi+=0.05;}
+  return{lo,hi};
+}
+
+function renderSS(){
+  ctxS.clearRect(0,0,PLOT_W,PLOT_H);
+  ctxS.fillStyle='#faf8f4';ctxS.fillRect(0,0,PLOT_W,PLOT_H);
+  if(gammaHistory.length<2)return;
+
+  const mg={l:58,r:10,t:20,b:36};
+  const pw=PLOT_W-mg.l-mg.r, ph=PLOT_H-mg.t-mg.b;
+  const {lo:gMin,hi:gMax}=gammaRange();
+  const gArr=gammaHistory,sArr=sigmaHistory;
+
+  let sMin=sArr[0],sMax=sArr[0];
+  for(const v of sArr){if(v<sMin)sMin=v;if(v>sMax)sMax=v;}
+  const sp2=Math.max(0.0005,(sMax-sMin)*0.1);
+  sMin-=sp2;sMax+=sp2;
+  if(sMax-sMin<0.001){sMin=-0.0005;sMax=0.0005;}
+
+  const gx=g=>mg.l+(g-gMin)/(gMax-gMin)*pw;
+  const sy=s=>mg.t+ph-(s-sMin)/(sMax-sMin)*ph;
+
+  // Faint grid
+  ctxS.strokeStyle='#e4ddd5';ctxS.lineWidth=0.5;ctxS.setLineDash([2,4]);
+  if(sMin<0&&sMax>0){ctxS.beginPath();ctxS.moveTo(mg.l,sy(0));ctxS.lineTo(mg.l+pw,sy(0));ctxS.stroke();}
+  if(gMin<0&&gMax>0){ctxS.beginPath();ctxS.moveTo(gx(0),mg.t);ctxS.lineTo(gx(0),mg.t+ph);ctxS.stroke();}
+  ctxS.setLineDash([]);
+
+  // Frame
+  ctxS.strokeStyle='#c8c0b6';ctxS.lineWidth=0.8;ctxS.strokeRect(mg.l,mg.t,pw,ph);
+
+  // Curve
+  ctxS.beginPath();
+  ctxS.moveTo(gx(gArr[0]),sy(sArr[0]));
+  for(let k=1;k<gArr.length;k++) ctxS.lineTo(gx(gArr[k]),sy(sArr[k]));
+  ctxS.strokeStyle='#8b4010';ctxS.lineWidth=1.5;ctxS.lineJoin='round';ctxS.stroke();
+
+  // Current point
+  const n=gArr.length-1;
+  ctxS.beginPath();ctxS.arc(gx(gArr[n]),sy(sArr[n]),3,0,2*Math.PI);
+  ctxS.fillStyle='#c47a2b';ctxS.fill();
+
+  // Y ticks
+  ctxS.fillStyle='#8a7868';ctxS.font='13px "Courier New"';ctxS.textAlign='right';
+  for(let k=0;k<=4;k++){
+    const sv=sMin+k*(sMax-sMin)/4;
+    const yp=sy(sv);
+    if(yp<mg.t-2||yp>mg.t+ph+2)continue;
+    ctxS.fillText(sv.toFixed(3),mg.l-5,yp+4);
+    ctxS.strokeStyle='#ddd6cc';ctxS.lineWidth=0.5;
+    ctxS.beginPath();ctxS.moveTo(mg.l-2,yp);ctxS.lineTo(mg.l,yp);ctxS.stroke();
+  }
+  // X ticks
+  ctxS.textAlign='center';
+  for(let k=0;k<=5;k++){
+    const gv=gMin+k*(gMax-gMin)/5;
+    const xp=gx(gv);
+    if(xp<mg.l-2||xp>mg.l+pw+2)continue;
+    ctxS.fillText(gv.toFixed(2),xp,mg.t+ph+14);
+    ctxS.strokeStyle='#ddd6cc';ctxS.lineWidth=0.5;
+    ctxS.beginPath();ctxS.moveTo(xp,mg.t+ph);ctxS.lineTo(xp,mg.t+ph+2);ctxS.stroke();
+  }
+  // Labels
+  ctxS.fillStyle='#7a6e64';ctxS.font='14px "DM Sans"';
+  ctxS.textAlign='center';ctxS.fillText('γ (strain)',mg.l+pw/2,PLOT_H-4);
+  ctxS.save();ctxS.translate(14,mg.t+ph/2);ctxS.rotate(-Math.PI/2);
+  ctxS.fillText('σ\u2093\u1D67',0,0);ctxS.restore();
+
+  // Title
+  ctxS.fillStyle='#8a7868';ctxS.font='13px "DM Sans"';ctxS.textAlign='left';
+  ctxS.fillText('Shear stress vs strain',mg.l+2,mg.t-4);
+}
+
+function renderT1(){
+  ctxT.clearRect(0,0,PLOT_W,PLOT_H);
+  ctxT.fillStyle='#faf8f4';ctxT.fillRect(0,0,PLOT_W,PLOT_H);
+  if(gammaHistory.length<2)return;
+
+  const mg={l:58,r:10,t:20,b:36};
+  const pw=PLOT_W-mg.l-mg.r, ph=PLOT_H-mg.t-mg.b;
+  const {lo:gMin,hi:gMax}=gammaRange();
+  const gArr=gammaHistory;
+
+  // Y range: 0 to max T1 per step (with at least 1 so axis shows)
+  let t1Max=1;
+  for(const v of t1PerStep) if(v>t1Max) t1Max=v;
+  // Nice round ceiling
+  const yTop=Math.ceil(t1Max/Math.max(1,Math.floor(t1Max/5)+1))*Math.max(1,Math.floor(t1Max/5)+1);
+
+  const gx=g=>mg.l+(g-gMin)/(gMax-gMin)*pw;
+  const yBot=mg.t+ph;
+
+  // Frame
+  ctxT.strokeStyle='#c8c0b6';ctxT.lineWidth=0.8;ctxT.strokeRect(mg.l,mg.t,pw,ph);
+
+  // Stems — one per step that had T1 events
+  const pixPerStep = pw / Math.max(1, gArr.length-1);
+  const barW = Math.max(1.5, Math.min(6, pixPerStep*0.7));
+
+  for(let k=0;k<gArr.length;k++){
+    const nt=t1PerStep[k]||0;
+    if(nt===0)continue;
+    const xp=gx(gArr[k]);
+    const stemH=nt/yTop*ph;
+    const yTop2=yBot-stemH;
+    // Stem
+    ctxT.fillStyle='rgba(196,122,43,0.75)';
+    ctxT.fillRect(xp-barW/2,yTop2,barW,stemH);
+    // Cap dot
+    ctxT.beginPath();
+    ctxT.arc(xp,yTop2,2.2,0,2*Math.PI);
+    ctxT.fillStyle='#8b4010';ctxT.fill();
+  }
+
+  // Y ticks (integer counts)
+  ctxT.fillStyle='#8a7868';ctxT.font='13px "Courier New"';ctxT.textAlign='right';
+  const yStep=yTop<=5?1:yTop<=10?2:yTop<=20?5:10;
+  for(let v=0;v<=yTop;v+=yStep){
+    const yp=yBot-v/yTop*ph;
+    if(yp<mg.t-2||yp>yBot+2)continue;
+    ctxT.fillText(v,mg.l-5,yp+4);
+    ctxT.strokeStyle='#ddd6cc';ctxT.lineWidth=0.5;
+    ctxT.beginPath();ctxT.moveTo(mg.l-2,yp);ctxT.lineTo(mg.l,yp);ctxT.stroke();
+    if(v>0){
+      ctxT.strokeStyle='#ece6de';ctxT.setLineDash([2,4]);
+      ctxT.beginPath();ctxT.moveTo(mg.l,yp);ctxT.lineTo(mg.l+pw,yp);ctxT.stroke();
+      ctxT.setLineDash([]);
+    }
+  }
+  // X ticks (shared range with stress-strain)
+  ctxT.textAlign='center';
+  for(let k=0;k<=5;k++){
+    const gv=gMin+k*(gMax-gMin)/5;
+    const xp=gx(gv);
+    if(xp<mg.l-2||xp>mg.l+pw+2)continue;
+    ctxT.fillText(gv.toFixed(2),xp,mg.t+ph+14);
+    ctxT.strokeStyle='#ddd6cc';ctxT.lineWidth=0.5;
+    ctxT.beginPath();ctxT.moveTo(xp,yBot);ctxT.lineTo(xp,yBot+2);ctxT.stroke();
+  }
+  // Labels
+  ctxT.fillStyle='#7a6e64';ctxT.font='14px "DM Sans"';
+  ctxT.textAlign='center';ctxT.fillText('γ (strain)',mg.l+pw/2,PLOT_H-4);
+  ctxT.save();ctxT.translate(14,mg.t+ph/2);ctxT.rotate(-Math.PI/2);
+  ctxT.fillText('T1 events',0,0);ctxT.restore();
+
+  // Title
+  ctxT.fillStyle='#8a7868';ctxT.font='13px "DM Sans"';ctxT.textAlign='left';
+  ctxT.fillText('Avalanche size (T1/step) vs strain',mg.l+2,mg.t-4);
+}
+
+function updateStats(){
+  document.getElementById('sGam').textContent=gamma.toFixed(4);
+  document.getElementById('sT1').textContent=totalT1s;
+  document.getElementById('sStep').textContent=stepCount;
+}
+
+function render(){
+  renderCells();
+  renderSS();
+  renderT1();
+  updateStats();
+}
+
+// ── Simulation control ────────────────────────────────────────────────────────
+function initSim(){
+  const rng=makeRng(42);
+  for(let i=0;i<N;i++){posX[i]=rng()*L;posY[i]=rng()*L;}
+  gamma=0; stepCount=0; totalT1s=0;
+  gammaHistory=[]; sigmaHistory=[]; t1PerStep=[];
+  cyclePhase=0; cycleStepInPhase=0;
+
+  document.getElementById('sGam').textContent='0.0000';
+  document.getElementById('sSig').textContent='—';
+  document.getElementById('sT1').textContent='0';
+  document.getElementById('sStep').textContent='0';
+  document.getElementById('sFire').textContent='minimizing…';
+  document.getElementById('sMaxF').textContent='—';
+
+  // Initial minimize (tight)
+  const r0=fireMinimize(posX,posY,gamma,kAVal,p0Val);
+  const res=r0.res;
+  cellAreas.set(res.areas); cellPerims.set(res.perims); cellPolys=res.polys;
+  prevAdj=getAdj(posX,posY,gamma);
+
+  const sig0=shearStress(posX,posY,gamma,kAVal,p0Val);
+  gammaHistory.push(gamma); sigmaHistory.push(sig0); t1PerStep.push(0);
+
+  document.getElementById('sFire').textContent=r0.steps;
+  document.getElementById('sMaxF').textContent=r0.maxF.toExponential(2);
+  document.getElementById('sSig').textContent=sig0.toFixed(4);
+
+  render();
+}
+
+function doStrainStep(){
+  const dg=nextDgamma();
+  affineShear(posX,posY,dg);
+  gamma+=dg;
+  wrapLE(posX,posY,gamma);
+
+  const r=fireMinimize(posX,posY,gamma,kAVal,p0Val);
+  const res=r.res;
+  cellAreas.set(res.areas); cellPerims.set(res.perims); cellPolys=res.polys;
+
+  const sig=shearStress(posX,posY,gamma,kAVal,p0Val);
+
+  // Compute T1 count BEFORE pushing to history (nt1 must be defined first)
+  const adj=getAdj(posX,posY,gamma);
+  const nt1=t1count(prevAdj,adj);
+  totalT1s+=nt1;
+  prevAdj=adj;
+
+  gammaHistory.push(gamma); sigmaHistory.push(sig); t1PerStep.push(nt1);
+  if(gammaHistory.length>2000){gammaHistory.shift();sigmaHistory.shift();t1PerStep.shift();}
+
+  stepCount++;
+  document.getElementById('sFire').textContent=r.steps;
+  document.getElementById('sMaxF').textContent=r.maxF.toExponential(2);
+  document.getElementById('sSig').textContent=sig.toFixed(5);
+
+  render();
+}
+
+function runLoop(token){
+  if(!running||paused||token!==runToken) return;
+  doStrainStep();
+  setTimeout(()=>runLoop(token),0);
+}
+
+// ── UI bindings ───────────────────────────────────────────────────────────────
+const bRun=document.getElementById('bRun');
+const bPause=document.getElementById('bPause');
+
+function slider(sid,lid,dec,cb){
+  const s=document.getElementById(sid),l=document.getElementById(lid);
+  s.addEventListener('input',()=>{const v=+s.value;l.textContent=v.toFixed(dec);if(cb)cb(v);});
+}
+slider('sp','lp',2,v=>{p0Val=v;});
+slider('sk','lk',2,v=>{kAVal=v;});
+
+document.getElementById('oscCheck').addEventListener('change',function(){
+  oscillatory=this.checked;
+  document.getElementById('ampInput').disabled=!this.checked;
+  cyclePhase=0;cycleStepInPhase=0;
+});
+document.getElementById('ampInput').addEventListener('change',function(){
+  amplitude=Math.max(0.05,+this.value);
+  cyclePhase=0;cycleStepInPhase=0;
+});
+
+bRun.addEventListener('click',function(){
+  if(!running){
+    running=true;paused=false;
+    bRun.textContent='■  Stop';bRun.classList.add('live');
+    bPause.disabled=false;
+    const tok=++runToken;
+    setTimeout(()=>runLoop(tok),0);
+  }else{
+    running=false;
+    bRun.textContent='▶  Run';bRun.classList.remove('live');
+    bPause.textContent='Pause';bPause.disabled=true;
+  }
+});
+
+bPause.addEventListener('click',function(){
+  paused=!paused;
+  this.textContent=paused?'Resume':'Pause';
+  if(!paused){const tok=++runToken;setTimeout(()=>runLoop(tok),0);}
+});
+
+document.getElementById('bReset').addEventListener('click',function(){
+  running=false;paused=false;
+  bRun.textContent='▶  Run';bRun.classList.remove('live');
+  bPause.textContent='Pause';bPause.disabled=true;
+  runToken++;
+  setTimeout(initSim,0);
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+setupCanvases();
+// Defer so the browser paints the layout before the synchronous FIRE minimize
+setTimeout(initSim, 50);
+</script>
+</body>
+</html>
