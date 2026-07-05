@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vertex Model — Viscous Adhesion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f4ef;--surf:#fff;--bord:#e0d9d0;--bord2:#d0c9c0;
+  --ink:#1a1a1a;--muted:#6b6458;--acc:#7b3f00;--acc2:#c47a2b;
+  --sans:'DM Sans',system-ui,sans-serif;--mono:'Courier New',monospace;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;min-height:100vh;}
+nav{position:sticky;top:0;z-index:100;background:rgba(247,244,239,.94);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--bord);padding:13px 0;}
+nav ul{list-style:none;display:flex;gap:28px;max-width:1300px;margin:0 auto;padding:0 28px;}
+nav a{font-size:14px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;transition:color .2s;}
+nav a:hover,nav a.active{color:var(--acc);}
+.wrapper{max-width:1300px;margin:0 auto;padding:0 28px 60px;}
+.page-header{padding:18px 0 14px;border-bottom:1px solid var(--bord);margin-bottom:16px;}
+.back{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;
+  color:var(--muted);text-decoration:none;margin-bottom:8px;letter-spacing:.04em;}
+.back:hover{color:var(--acc);}
+.page-header h1{font-family:'EB Garamond',serif;font-size:1.9em;font-weight:500;margin-bottom:4px;}
+.page-header p{font-size:14px;color:var(--muted);max-width:650px;line-height:1.55;}
+.sim-layout{display:grid;grid-template-columns:auto 210px auto;gap:16px;align-items:start;}
+.sim-left{display:flex;flex-direction:column;gap:8px;}
+.plots-col{display:flex;flex-direction:column;gap:8px;}
+canvas{display:block;border:1px solid var(--bord);border-radius:4px;}
+.panel{background:var(--surf);border:1px solid var(--bord);border-radius:6px;padding:11px;
+  display:flex;flex-direction:column;gap:7px;position:sticky;top:52px;}
+.sec{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--bord);padding-bottom:3px;margin-top:2px;}
+.sec:first-child{margin-top:0;}
+.cg{display:flex;flex-direction:column;gap:3px;}
+.cg label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);}
+.cg label b{color:var(--acc);font-weight:600;font-family:var(--mono);}
+input[type=range]{width:100%;accent-color:var(--acc);height:3px;cursor:pointer;}
+.run-btn{width:100%;padding:7px;background:var(--bg);border:1px solid var(--acc2);
+  border-radius:3px;color:var(--acc);font-family:var(--mono);font-size:.85rem;
+  letter-spacing:.12em;cursor:pointer;transition:background .15s;}
+.run-btn:hover{background:#f0e8dc;}
+.run-btn.live{background:#e8f5ec;border-color:#38a860;color:#2a7a48;}
+.btns{display:flex;gap:5px;}
+.btns button{flex:1;padding:5px;background:var(--bg);border:1px solid var(--bord2);
+  border-radius:3px;color:var(--ink);font-family:var(--mono);font-size:.8rem;
+  letter-spacing:.04em;cursor:pointer;}
+.btns button:hover{background:#f0e8dc;}
+.btns button:disabled{opacity:.35;cursor:default;}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.st{display:flex;flex-direction:column;}
+.sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.sv{font-size:.95rem;color:var(--acc);font-family:var(--mono);}
+.legend-wrap{display:flex;flex-direction:column;gap:2px;}
+.legend-bar{height:9px;border-radius:3px;background:linear-gradient(90deg,#5094cc,#f0ede8 45%,#d04030);}
+.legend-ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--mono);}
+.legend-mid{font-size:10.5px;color:var(--acc2);font-family:var(--mono);text-align:center;}
+.fixed-row{font-size:12px;color:var(--muted);line-height:1.65;}
+.fixed-row span{color:var(--acc2);font-family:var(--mono);}
+.status{font-size:11px;color:var(--muted);font-family:var(--mono);text-align:center;padding:3px 0;}
+</style>
+</head>
+<body>
+<nav><ul>
+  <li><a href="index.html">Home</a></li>
+  <li><a href="research.html">Research</a></li>
+  <li><a href="publications.html">Publications</a></li>
+  <li><a href="simulation.html" class="active">Simulations</a></li>
+</ul></nav>
+<div class="wrapper">
+<div class="page-header">
+  <a class="back" href="simulation.html">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+    </svg>All Simulations
+  </a>
+  <h1>Vertex Model with Viscous Cell–Cell Adhesion</h1>
+  <p>Active vertex model (AVM) where cell junctions resist differential sliding via viscous adhesion B. T1 transitions are suppressed at high B. Cells colored by shape index q&nbsp;=&nbsp;P/√A.</p>
+</div>
+<div class="sim-layout">
+  <div class="sim-left">
+    <canvas id="cMain"></canvas>
+    <div class="status" id="statusLine">Relaxing initial configuration…</div>
+  </div>
+  <div class="panel">
+    <div class="sec">Parameters</div>
+    <div class="cg">
+      <label>Active speed v₀ <b id="lv">0.10</b></label>
+      <input type="range" id="sv" min="0" max="0.5" step="0.01" value="0.10">
+    </div>
+    <div class="cg">
+      <label>Energetic adhesion p₀ <b id="lp">3.80</b></label>
+      <input type="range" id="sp" min="3.50" max="4.50" step="0.01" value="3.80">
+    </div>
+    <div class="cg">
+      <label>Viscous adhesion B <b id="lb">1.00</b></label>
+      <input type="range" id="sb" min="0" max="10" step="0.1" value="1.0">
+    </div>
+    <div class="fixed-row">
+      <span>N</span>=100&nbsp; <span>KA</span>=<span>KP</span>=1<br>
+      <span>Dr</span>=1&nbsp; <span>dt</span>=0.01&nbsp; <span>p₀*</span>≈3.81
+    </div>
+    <div class="sec">Control</div>
+    <button class="run-btn" id="bRun" disabled>▶&nbsp; Run</button>
+    <div class="btns">
+      <button id="bPause" disabled>Pause</button>
+      <button id="bReset" disabled>Reset</button>
+    </div>
+    <div class="sec">Stats</div>
+    <div class="stats">
+      <div class="st"><span class="sl">Time t</span><span class="sv" id="sT">0.00</span></div>
+      <div class="st"><span class="sl">Mean |v|</span><span class="sv" id="sV">—</span></div>
+      <div class="st"><span class="sl">Total T1s</span><span class="sv" id="sT1">0</span></div>
+      <div class="st"><span class="sl">Step</span><span class="sv" id="sStep">0</span></div>
+      <div class="st"><span class="sl">Mean q</span><span class="sv" id="sQ">—</span></div>
+      <div class="st"><span class="sl">Nvert</span><span class="sv" id="sNv">—</span></div>
+    </div>
+    <div class="sec">Shape index q = P/√A</div>
+    <div class="legend-wrap">
+      <div class="legend-bar"></div>
+      <div class="legend-ticks"><span>3.50</span><span>3.81</span><span>4.20</span></div>
+      <div class="legend-mid">▲ p₀* (rigid transition)</div>
+    </div>
+  </div>
+  <div class="plots-col">
+    <canvas id="cMsd"></canvas>
+    <canvas id="cT1"></canvas>
+  </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+'use strict';
+// ── Constants ─────────────────────────────────────────────────────────────────
+const N=100, L=Math.sqrt(N);
+const KA=1.0, KPC=1.0, A0C=1.0;
+const DR=1.0, DT=0.01;
+const L_THRESH=0.05, TAU_T1=1.0;
+const SPF=5;
+const MAIN_W=460, MAIN_H=460, PLOT_W=275, PLOT_H=224;
+const CMAP_LO=3.50, CMAP_MID=3.81, CMAP_HI=4.20;
+const BLUE=[80,148,204], WHITE=[242,238,230], RED=[208,64,48];
+
+// ── Tunable params ────────────────────────────────────────────────────────────
+let v0Val=0.10, p0Val=3.80, B_val=1.00;
+
+// ── Sim state ─────────────────────────────────────────────────────────────────
+let Vx,Vy,C,Nvert,ED,theta,timerMap;
+let prevCx,prevCy,cumDx,cumDy;
+let simTime=0,stepCount=0,totalT1=0,lastMeanV=0;
+let tHistory=[],msdHistory=[],t1History=[];
+
+// ── Saved baseline (computed once, restored on Reset) ─────────────────────────
+let baseVx=null,baseVy=null,baseC=null,baseNvert=null;
+
+// ── UI state ──────────────────────────────────────────────────────────────────
+let running=false,paused=false,runToken=0;
+
+// ── Seeded RNG (Mulberry32) ───────────────────────────────────────────────────
+function makeRng(seed){
+  let s=seed>>>0;
+  return()=>{s+=0x6D2B79F5;let t=Math.imul(s^s>>>15,1|s);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296;};
+}
+function randn(){const u=1e-10+Math.random(),v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+// ── PBC helpers ───────────────────────────────────────────────────────────────
+function pbcDist(dx,dy){return[dx-Math.round(dx/L)*L,dy-Math.round(dy/L)*L];}
+function wrapPos(x){return((x%L)+L)%L;}
+
+// ── Topology (rebuilt after every T1) ─────────────────────────────────────────
+// Vertex count stays constant throughout the simulation — T1 swaps only
+// reconnect adjacency, never create or destroy vertices.
+function buildEdgeData(){
+  const Nv=Vx.length;
+  const VVlist=Array.from({length:Nv},()=>[]);
+  const VElist=Array.from({length:Nv},()=>[]);
+  const CVlist=Array.from({length:Nv},()=>[]);
+  const CElist_cell=Array.from({length:N},()=>[]);
+  const CElist_edge=[];
+  const E_list=[];
+  const edgeMap=new Map();
+  for(let i=0;i<N;i++){
+    const verts=C[i],z=verts.length;
+    for(const v of verts)if(CVlist[v].indexOf(i)===-1)CVlist[v].push(i);
+    for(let k=0;k<z;k++){
+      const v1=verts[k],v2=verts[(k+1)%z];
+      const key=v1<v2?`${v1},${v2}`:`${v2},${v1}`;
+      if(!edgeMap.has(key)){
+        const eid=E_list.length;
+        edgeMap.set(key,eid);E_list.push([v1,v2]);CElist_edge.push([]);
+        if(VVlist[v1].indexOf(v2)===-1)VVlist[v1].push(v2);
+        if(VVlist[v2].indexOf(v1)===-1)VVlist[v2].push(v1);
+        if(VElist[v1].indexOf(eid)===-1)VElist[v1].push(eid);
+        if(VElist[v2].indexOf(eid)===-1)VElist[v2].push(eid);
+      }
+      const eid=edgeMap.get(key);
+      if(CElist_edge[eid].indexOf(i)===-1)CElist_edge[eid].push(i);
+      if(CElist_cell[i].indexOf(eid)===-1)CElist_cell[i].push(eid);
+    }
+  }
+  return{E_list,edgeMap,Nedge:E_list.length,VVlist,CVlist,VElist,CElist_cell,CElist_edge};
+}
+
+// ── Cell shape ────────────────────────────────────────────────────────────────
+function getCellShape(){
+  const areas=new Float64Array(N),perims=new Float64Array(N);
+  for(let i=0;i<N;i++){
+    const v=C[i],z=v.length;if(z<3)continue;
+    const px=new Float64Array(z),py=new Float64Array(z);
+    px[0]=Vx[v[0]];py[0]=Vy[v[0]];
+    for(let k=1;k<z;k++){
+      const[dx,dy]=pbcDist(Vx[v[k]]-px[0],Vy[v[k]]-py[0]);
+      px[k]=px[0]+dx;py[k]=py[0]+dy;
+    }
+    let area=0,perim=0;
+    for(let k=0;k<z;k++){
+      const kn=(k+1)%z;
+      area+=px[k]*py[kn]-px[kn]*py[k];
+      const ex=px[kn]-px[k],ey=py[kn]-py[k];
+      perim+=Math.sqrt(ex*ex+ey*ey);
+    }
+    areas[i]=Math.abs(area)/2;perims[i]=perim;
+  }
+  return{areas,perims};
+}
+
+// ── Enforce CCW winding on all cells ─────────────────────────────────────────
+function ensureCCW(){
+  for(let i=0;i<N;i++){
+    const v=C[i],z=v.length;if(z<3)continue;
+    const x0=Vx[v[0]],y0=Vy[v[0]];
+    let area=0,prevX=x0,prevY=y0;
+    for(let k=1;k<=z;k++){
+      let cx,cy;
+      if(k<z){
+        const[dx,dy]=pbcDist(Vx[v[k]]-x0,Vy[v[k]]-y0);
+        cx=x0+dx;cy=y0+dy;
+      }else{cx=x0;cy=y0;}
+      area+=prevX*cy-cx*prevY;
+      prevX=cx;prevY=cy;
+    }
+    if(area<0)C[i]=v.slice().reverse();
+  }
+}
+
+// ── Cell centroids for MSD tracking ─────────────────────────────────────────
+function getCellCenters(){
+  const cx=new Float64Array(N),cy=new Float64Array(N);
+  for(let i=0;i<N;i++){
+    const v=C[i],z=v.length;if(z<3)continue;
+    const x0=Vx[v[0]],y0=Vy[v[0]];
+    let sx=0,sy=0;
+    for(let k=1;k<z;k++){
+      const[dx,dy]=pbcDist(Vx[v[k]]-x0,Vy[v[k]]-y0);
+      sx+=dx;sy+=dy;
+    }
+    cx[i]=wrapPos(x0+sx/z);cy[i]=wrapPos(y0+sy/z);
+  }
+  return{cx,cy};
+}
+
+function updateMSD(){
+  const{cx,cy}=getCellCenters();
+  for(let i=0;i<N;i++){
+    const[dx,dy]=pbcDist(cx[i]-prevCx[i],cy[i]-prevCy[i]);
+    cumDx[i]+=dx;cumDy[i]+=dy;
+    prevCx[i]=cx[i];prevCy[i]=cy[i];
+  }
+  let msd=0;
+  for(let i=0;i<N;i++)msd+=cumDx[i]*cumDx[i]+cumDy[i]*cumDy[i];
+  return msd/N;
+}
+
+// ── Elastic forces F=−∂E/∂r (port of get_VM_force_LE, strain=0) ─────────────
+function getVMForce(areas,perims,p0){
+  const Nv=Vx.length,P0=p0*Math.sqrt(A0C);
+  const FX=new Float64Array(Nv),FY=new Float64Array(Nv);
+  for(let i=0;i<N;i++){
+    const nb=C[i],z=nb.length;if(z<3)continue;
+    // Unfold all vertices around the last vertex (matches MATLAB)
+    const px=new Float64Array(z+2),py=new Float64Array(z+2);
+    const nL=new Int32Array(z+2);
+    const xlast=Vx[nb[z-1]],ylast=Vy[nb[z-1]];
+    for(let k=0;k<z;k++){
+      const[dx,dy]=pbcDist(Vx[nb[k]]-xlast,Vy[nb[k]]-ylast);
+      px[k]=xlast+dx;py[k]=ylast+dy;nL[k]=nb[k];
+    }
+    // Cyclic extension for index wrap
+    px[z]=px[0];py[z]=py[0];nL[z]=nL[0];
+    px[z+1]=px[1];py[z+1]=py[1];nL[z+1]=nL[1];
+    const dA=areas[i]-A0C,dP=perims[i]-P0;
+    for(let n=1;n<=z;n++){
+      let Fx=KA*dA*(py[n+1]-py[n-1]);
+      let Fy=KA*dA*(px[n-1]-px[n+1]);
+      const dxm=px[n]-px[n-1],dym=py[n]-py[n-1],Lm=Math.sqrt(dxm*dxm+dym*dym);
+      const dxp=px[n]-px[n+1],dyp=py[n]-py[n+1],Lp=Math.sqrt(dxp*dxp+dyp*dyp);
+      if(Lm>1e-12){Fx+=2*KPC*dP*dxm/Lm;Fy+=2*KPC*dP*dym/Lm;}
+      if(Lp>1e-12){Fx+=2*KPC*dP*dxp/Lp;Fy+=2*KPC*dP*dyp/Lp;}
+      FX[nL[n]]-=Fx;FY[nL[n]]-=Fy;
+    }
+  }
+  return{FX,FY};
+}
+
+// ── Vertex polarity (port of get_theta_vertex.m) ──────────────────────────────
+function getThetaVertex(){
+  const Nv=Vx.length;
+  const tvx=new Float64Array(Nv),tvy=new Float64Array(Nv);
+  const eLens=ED.E_list.map(([a,b])=>{
+    const[dx,dy]=pbcDist(Vx[b]-Vx[a],Vy[b]-Vy[a]);
+    return Math.sqrt(dx*dx+dy*dy);
+  });
+  for(let v=0;v<Nv;v++){
+    const adjC=ED.CVlist[v],adjE=ED.VElist[v],z=adjC.length;
+    if(!z)continue;
+    const Lv=adjE.reduce((s,e)=>s+eLens[e],0);
+    if(Lv<1e-12)continue;
+    let tx=0,ty=0;
+    for(const cid of adjC){
+      const cEset=new Set(ED.CElist_cell[cid]);
+      const lc=adjE.filter(e=>cEset.has(e)).reduce((s,e)=>s+eLens[e],0);
+      const ac=lc/(2*z*Lv);
+      tx+=ac*Math.cos(theta[cid]);ty+=ac*Math.sin(theta[cid]);
+    }
+    const mag=Math.sqrt(tx*tx+ty*ty);
+    if(mag>0){tvx[v]=tx/mag;tvy[v]=ty/mag;}
+  }
+  return{tvx,tvy};
+}
+
+// ── Viscous velocity solve (Jacobi, 20 iterations) ───────────────────────────
+// From MATLAB get_vertex_velo_viscous: coef uses ex·êx = dx²/L (raw × unit),
+// NOT êx² = dx²/L².  Missing this factor caused the original B=5 instability.
+function solveViscous(FX,FY,B){
+  const Nv=Vx.length;
+  let vx=new Float64Array(FX),vy=new Float64Array(FY);
+  if(B<1e-10)return{vx,vy};
+  for(let it=0;it<20;it++){
+    const nx=new Float64Array(Nv),ny=new Float64Array(Nv);
+    for(let i=0;i<Nv;i++){
+      const nb=ED.VVlist[i];
+      if(!nb.length){nx[i]=FX[i];ny[i]=FY[i];continue;}
+      let Axx=1,Axy=0,Ayy=1,rx=FX[i],ry=FY[i];
+      for(const j of nb){
+        const[dx,dy]=pbcDist(Vx[j]-Vx[i],Vy[j]-Vy[i]);
+        const Lij=Math.sqrt(dx*dx+dy*dy);if(Lij<1e-12)continue;
+        const exh=dx/Lij,eyh=dy/Lij;
+        Axx+=B*dx*exh;Axy+=B*dy*exh;Ayy+=B*dy*eyh;
+        const rdv=dx*vx[j]+dy*vy[j];
+        rx+=B*exh*rdv;ry+=B*eyh*rdv;
+      }
+      const det=Axx*Ayy-Axy*Axy;
+      if(Math.abs(det)<1e-20){nx[i]=FX[i];ny[i]=FY[i];continue;}
+      nx[i]=(rx*Ayy-ry*Axy)/det;ny[i]=(ry*Axx-rx*Axy)/det;
+    }
+    vx=nx;vy=ny;
+  }
+  return{vx,vy};
+}
+
+// ── T1 edge swap ─────────────────────────────────────────────────────────────
+// Vertex count is UNCHANGED — we only reconnect adjacency.
+function doT1(E0){
+  const{E_list,CElist_edge,CVlist}=ED;
+  if(!CElist_edge[E0]||CElist_edge[E0].length!==2)return false;
+  let[c1,c2]=CElist_edge[E0];
+  const[u0,v0]=E_list[E0];
+  // Ensure c1 has u0→v0 in CCW order
+  {const l=C[c1],idx=l.indexOf(u0);
+   if(idx===-1||l[(idx+1)%l.length]!==v0)[c1,c2]=[c2,c1];}
+  {const l=C[c1],idx=l.indexOf(u0);
+   if(idx===-1||l[(idx+1)%l.length]!==v0)return false;}
+  if(C[c1].length<4||C[c2].length<4)return false;
+  const cu=CVlist[u0].find(c=>c!==c1&&c!==c2);
+  const cv=CVlist[v0].find(c=>c!==c1&&c!==c2);
+  if(cu===undefined||cv===undefined||cu===cv)return false;
+  const cuL=[...C[cu]],idxU=cuL.indexOf(u0);if(idxU===-1)return false;
+  const u2=cuL[(idxU+1)%cuL.length];
+  const cvL=[...C[cv]],idxV=cvL.indexOf(v0);if(idxV===-1)return false;
+  const v2=cvL[(idxV+1)%cvL.length];
+  C[cu]=[...cuL.slice(0,idxU+1),v0,...cuL.slice(idxU+1)];
+  C[cv]=[...cvL.slice(0,idxV+1),u0,...cvL.slice(idxV+1)];
+  C[c1]=C[c1].filter(v=>v!==u0);
+  C[c2]=C[c2].filter(v=>v!==v0);
+  // 90° CCW rotation around midpoint
+  const[dx,dy]=pbcDist(Vx[v0]-Vx[u0],Vy[v0]-Vy[u0]);
+  const xv=Vx[u0]+dx,yv=Vy[u0]+dy,xu=Vx[u0],yu=Vy[u0];
+  const xm=(xv+xu)/2,ym=(yv+yu)/2;
+  Vx[v0]=wrapPos(-(yv-ym)+xm);Vy[v0]=wrapPos((xv-xm)+ym);
+  Vx[u0]=wrapPos(-(yu-ym)+xm);Vy[u0]=wrapPos((xu-xm)+ym);
+  timerMap.set(u0<v0?`${u0},${v0}`:`${v0},${u0}`,0);
+  // ── Fix winding for the 4 affected cells ────────────────────────────────
+  // A T1 rotation can flip the signed area of c1, c2, cu, or cv.
+  // CW cells get wrong force sign (area force shrinks instead of expands).
+  // Reversing the vertex list restores CCW without breaking shared-edge topology:
+  //   adjacent CCW cells always share an edge in opposite directions, so
+  //   if cell X was CW and we reverse it, the shared edge with its CCW neighbor
+  //   flips to the correct opposing direction.
+  for(const ci of [c1,c2,cu,cv]){
+    const vl=C[ci],zl=vl.length;if(zl<3)continue;
+    const x0=Vx[vl[0]],y0=Vy[vl[0]];
+    let area=0,prevX=x0,prevY=y0;
+    for(let k=1;k<=zl;k++){
+      let cx,cy;
+      if(k<zl){const[ddx,ddy]=pbcDist(Vx[vl[k]]-x0,Vy[vl[k]]-y0);cx=x0+ddx;cy=y0+ddy;}
+      else{cx=x0;cy=y0;}
+      area+=prevX*cy-cx*prevY;prevX=cx;prevY=cy;
+    }
+    if(area<0)C[ci]=vl.slice().reverse();
+  }
+  return true;
+}
+
+function edgeKey(a,b){return a<b?`${a},${b}`:`${b},${a}`;}
+function getTimer(a,b){return timerMap.get(edgeKey(a,b))||0;}
+function incTimers(){
+  for(const[a,b]of ED.E_list){const k=edgeKey(a,b);timerMap.set(k,(timerMap.get(k)||0)+DT);}
+}
+
+// ── Simulation step ───────────────────────────────────────────────────────────
+function simStep(){
+  for(let e=0;e<ED.Nedge;e++){
+    const[v1,v2]=ED.E_list[e];
+    const[dx,dy]=pbcDist(Vx[v2]-Vx[v1],Vy[v2]-Vy[v1]);
+    if(Math.sqrt(dx*dx+dy*dy)<L_THRESH&&getTimer(v1,v2)>TAU_T1){
+      if(doT1(e)){ED=buildEdgeData();totalT1++;e=-1;}
+    }
+  }
+  const{areas,perims}=getCellShape();
+  const{FX,FY}=getVMForce(areas,perims,p0Val);
+  const sqdt=Math.sqrt(2*DR*DT);
+  for(let i=0;i<N;i++)theta[i]+=sqdt*randn();
+  const{tvx,tvy}=getThetaVertex();
+  for(let v=0;v<Nvert;v++){FX[v]+=v0Val*tvx[v];FY[v]+=v0Val*tvy[v];}
+  const{vx,vy}=solveViscous(FX,FY,B_val);
+  let sumV=0;
+  for(let v=0;v<Nvert;v++)sumV+=Math.sqrt(vx[v]*vx[v]+vy[v]*vy[v]);
+  lastMeanV=sumV/Nvert;
+  for(let v=0;v<Nvert;v++){Vx[v]=wrapPos(Vx[v]+DT*vx[v]);Vy[v]=wrapPos(Vy[v]+DT*vy[v]);}
+  incTimers();
+  simTime+=DT;stepCount++;
+  const msd=updateMSD();
+  tHistory.push(simTime);msdHistory.push(msd);t1History.push(totalT1);
+  return{areas,perims,FX,FY};
+}
+
+// ── FIRE minimization ─────────────────────────────────────────────────────────
+function fireRelax(p0,maxSteps){
+  const Nv=Vx.length;
+  let velX=new Float64Array(Nv),velY=new Float64Array(Nv);
+  let dt=0.004,alpha=0.1,Npos=0;
+  const DT_MAX=0.015,F_INC=1.1,F_DEC=0.5,FA=0.99,NM=5;
+  for(let step=0;step<maxSteps;step++){
+    let didT1=false;
+    for(let e=0;e<ED.Nedge;e++){
+      const[v1,v2]=ED.E_list[e];
+      const[dx,dy]=pbcDist(Vx[v2]-Vx[v1],Vy[v2]-Vy[v1]);
+      if(Math.sqrt(dx*dx+dy*dy)<L_THRESH){
+        if(doT1(e)){ED=buildEdgeData();didT1=true;
+          velX=new Float64Array(Nv);velY=new Float64Array(Nv);
+          dt=0.004;alpha=0.1;Npos=0;break;}
+      }
+    }
+    if(didT1)continue;
+    const{areas,perims}=getCellShape();
+    const{FX,FY}=getVMForce(areas,perims,p0);
+    let maxF2=0,P=0,vnorm2=0,fnorm2=0;
+    for(let v=0;v<Nv;v++){
+      const f2=FX[v]*FX[v]+FY[v]*FY[v];if(f2>maxF2)maxF2=f2;
+      P+=velX[v]*FX[v]+velY[v]*FY[v];
+      vnorm2+=velX[v]*velX[v]+velY[v]*velY[v];
+      fnorm2+=f2;
+    }
+    if(maxF2<1e-10)break;
+    const vnorm=Math.sqrt(vnorm2),fnorm=Math.sqrt(fnorm2);
+    if(P>0){
+      Npos++;
+      if(vnorm>1e-30){const sc=vnorm/fnorm;
+        for(let v=0;v<Nv;v++){velX[v]=(1-alpha)*velX[v]+alpha*sc*FX[v];velY[v]=(1-alpha)*velY[v]+alpha*sc*FY[v];}}
+      if(Npos>NM){dt=Math.min(dt*F_INC,DT_MAX);alpha*=FA;}
+    }else{
+      dt*=F_DEC;alpha=0.1;Npos=0;
+      for(let v=0;v<Nv;v++){velX[v]=0;velY[v]=0;}
+    }
+    for(let v=0;v<Nv;v++){
+      velX[v]+=dt*FX[v];velY[v]+=dt*FY[v];
+      Vx[v]=wrapPos(Vx[v]+dt*velX[v]);Vy[v]=wrapPos(Vy[v]+dt*velY[v]);
+    }
+  }
+}
+
+// ── Save / restore relaxed baseline ──────────────────────────────────────────
+function saveBaseline(){
+  baseNvert=Nvert;
+  baseVx=new Float64Array(Vx);baseVy=new Float64Array(Vy);
+  baseC=C.map(v=>[...v]);
+}
+function restoreBaseline(seed){
+  Nvert=baseNvert;
+  Vx=new Float64Array(baseVx);Vy=new Float64Array(baseVy);
+  C=baseC.map(v=>[...v]);
+  ED=buildEdgeData();
+  const rng=makeRng(seed);
+  theta=new Float64Array(N);for(let i=0;i<N;i++)theta[i]=rng()*2*Math.PI;
+  timerMap=new Map();
+  for(const[v1,v2]of ED.E_list)timerMap.set(edgeKey(v1,v2),rng()*TAU_T1);
+  const{cx,cy}=getCellCenters();
+  prevCx=cx;prevCy=cy;
+  cumDx=new Float64Array(N);cumDy=new Float64Array(N);
+  simTime=0;stepCount=0;totalT1=0;lastMeanV=0;
+  tHistory=[];msdHistory=[];t1History=[];
+}
+
+// ── Initialization: analytic brick-wall hexagonal lattice ────────────────────
+//
+// Instead of extracting Voronoi topology from a 9N Delaunay triangulation
+// (fragile: circumcenter wrapping, fan-walk ordering, degenerate edges), we
+// BUILD the topology analytically for a 10×10 periodic brick-wall lattice.
+//
+// Layout: even rows (iy=0,2,…) at x=(ix+0.5)·1, odd rows (iy=1,3,…) at x=ix·1.
+// This gives a hexagonal tiling with exactly Nvert=2N=200 vertices, every vertex
+// shared by exactly 3 cells, every edge shared by exactly 2 cells — by construction.
+//
+// Vertex index scheme (vidx = 2*(iy*10+ix) + offset):
+//   offset 0 = "left"  vertex for the (iy, iy+1) row-pair
+//   offset 1 = "right" vertex for the (iy, iy+1) row-pair
+//
+// Vertex positions (analytically derived from circumcenters of the 3 meeting cells):
+//   Even iy-pair:  left=(ix+0.5, iy+1.125),  right=((ix+1)%10, iy+0.875)
+//   Odd  iy-pair:  left=(ix,     iy+1.125),   right=(ix+0.5,   iy+0.875)
+//
+// CCW cell-vertex lists (verified by computing angles around cell centers):
+//   Even cell (iy,ix): [vidx(iy,ix,1), vidx(iy,ix,0), vidx(iy,ix-1,1),
+//                        vidx(iy-1,ix,0), vidx(iy-1,ix,1), vidx(iy-1,ix+1,0)]
+//   Odd  cell (iy,ix): [vidx(iy,ix,1), vidx(iy,ix,0), vidx(iy,ix-1,1),
+//                        vidx(iy-1,ix-1,0), vidx(iy-1,ix-1,1), vidx(iy-1,ix,0)]
+//   (all ix/iy arithmetic mod 10)
+function initSim(){
+  const nx=10,ny=10;   // N=100 = nx*ny
+
+  // ── Vertex positions ──────────────────────────────────────────────────────
+  Nvert=2*N;   // 200 — constant throughout simulation
+  Vx=new Float64Array(Nvert);Vy=new Float64Array(Nvert);
+  const vidx=(iy,ix,off)=>2*(((iy%ny+ny)%ny)*nx+((ix%nx+nx)%nx))+off;
+
+  for(let iy=0;iy<ny;iy++){
+    for(let ix=0;ix<nx;ix++){
+      const lo=vidx(iy,ix,0),hi=vidx(iy,ix,1);
+      if(iy%2===0){
+        // Even row pair: left=(ix+0.5, iy+1.125), right=((ix+1)%10, iy+0.875)
+        Vx[lo]=wrapPos((ix+0.5)*L/nx);  Vy[lo]=wrapPos((iy+1.125)*L/ny);
+        Vx[hi]=wrapPos((ix+1)*L/nx);    Vy[hi]=wrapPos((iy+0.875)*L/ny);
+      }else{
+        // Odd row pair: left=(ix, iy+1.125), right=(ix+0.5, iy+0.875)
+        Vx[lo]=wrapPos(ix*L/nx);         Vy[lo]=wrapPos((iy+1.125)*L/ny);
+        Vx[hi]=wrapPos((ix+0.5)*L/nx);  Vy[hi]=wrapPos((iy+0.875)*L/ny);
+      }
+    }
+  }
+
+  // ── Cell-vertex lists (CCW) ───────────────────────────────────────────────
+  C=Array.from({length:N},(_,i)=>{
+    const iy=Math.floor(i/nx),ix=i%nx;
+    const iy1=(iy-1+ny)%ny;
+    if(iy%2===0){
+      // Even cell: 6 vertices in CCW order
+      return[vidx(iy,ix,1),vidx(iy,ix,0),vidx(iy,ix-1,1),
+             vidx(iy1,ix,0),vidx(iy1,ix,1),vidx(iy1,ix+1,0)];
+    }else{
+      // Odd cell
+      return[vidx(iy,ix,1),vidx(iy,ix,0),vidx(iy,ix-1,1),
+             vidx(iy1,ix-1,0),vidx(iy1,ix-1,1),vidx(iy1,ix,0)];
+    }
+  });
+
+  // ── Small random perturbation — breaks perfect symmetry ──────────────────
+  // Uses a fixed seed so the baseline is deterministic.
+  const rng=makeRng(42);
+  const amp=0.04*L/nx;   // ≈4% of cell size; keeps all edges >> L_THRESH=0.05
+  for(let v=0;v<Nvert;v++){
+    Vx[v]=wrapPos(Vx[v]+(rng()-0.5)*2*amp);
+    Vy[v]=wrapPos(Vy[v]+(rng()-0.5)*2*amp);
+  }
+
+  // ── Polarity, timers, topology ────────────────────────────────────────────
+  theta=new Float64Array(N);
+  timerMap=new Map();
+  ED=buildEdgeData();
+
+  // ── No pre-relaxation needed — hex lattice is already confluent ───────────
+  // Omitting FIRE avoids any mid-relaxation T1 events (which could produce CW
+  // cells before the winding-fix code in doT1 has been exercised).  The tissue
+  // will naturally relax once the user starts the active simulation.
+
+  // ── Save relaxed baseline ─────────────────────────────────────────────────
+  saveBaseline();
+  restoreBaseline(42);
+}
+
+// ── Canvas setup ──────────────────────────────────────────────────────────────
+const cMain=document.getElementById('cMain');
+const cMsdEl=document.getElementById('cMsd');
+const cT1El=document.getElementById('cT1');
+let ctxM,ctxMsd,ctxT;
+function setupCanvases(){
+  const dpr=window.devicePixelRatio||1;
+  for(const[c,w,h]of[[cMain,MAIN_W,MAIN_H],[cMsdEl,PLOT_W,PLOT_H],[cT1El,PLOT_W,PLOT_H]]){
+    c.width=w*dpr;c.height=h*dpr;c.style.width=w+'px';c.style.height=h+'px';
+    c.getContext('2d').scale(dpr,dpr);
+  }
+  ctxM=cMain.getContext('2d');ctxMsd=cMsdEl.getContext('2d');ctxT=cT1El.getContext('2d');
+}
+
+// ── Cell color by shape index q=P/√A ─────────────────────────────────────────
+function cellColor(area,perim){
+  if(area<1e-6)return'#ccc';
+  const q=perim/Math.sqrt(area);
+  let r,g,b;
+  if(q<=CMAP_MID){
+    const s=Math.max(0,Math.min(1,(CMAP_MID-q)/(CMAP_MID-CMAP_LO)));
+    r=(WHITE[0]*(1-s)+BLUE[0]*s)|0;g=(WHITE[1]*(1-s)+BLUE[1]*s)|0;b=(WHITE[2]*(1-s)+BLUE[2]*s)|0;
+  }else{
+    const s=Math.max(0,Math.min(1,(q-CMAP_MID)/(CMAP_HI-CMAP_MID)));
+    r=(WHITE[0]*(1-s)+RED[0]*s)|0;g=(WHITE[1]*(1-s)+RED[1]*s)|0;b=(WHITE[2]*(1-s)+RED[2]*s)|0;
+  }
+  return`rgb(${r},${g},${b})`;
+}
+
+// ── Render cells — draws each cell at its unfolded position PLUS any PBC-shifted
+//    copies whose bounding box overlaps [0,L]×[0,L], ensuring boundary cells
+//    appear correctly tiled instead of cut off or overlapping.
+function renderCells(areas,perims){
+  const sc=MAIN_W/L;
+  ctxM.clearRect(0,0,MAIN_W,MAIN_H);
+  ctxM.fillStyle='#f0ede8';ctxM.fillRect(0,0,MAIN_W,MAIN_H);
+  // No explicit clip — rely on the canvas element's own boundary.
+  // Each cell is drawn EXACTLY ONCE at the position where its PBC-wrapped
+  // centroid falls inside [0,L)×[0,L), with the polygon unfolded around that
+  // centroid.  Cells near a boundary edge will be slightly clipped by the
+  // canvas, but adjacent cells (from the other side of the periodic domain)
+  // fill in that same boundary strip, so the tissue tiles correctly.
+  for(let i=0;i<N;i++){
+    const verts=C[i],z=verts.length;if(z<3)continue;
+    // ── PBC-aware centroid ───────────────────────────────────────────────
+    const cx0=Vx[verts[0]],cy0=Vy[verts[0]];
+    let sumDx=0,sumDy=0;
+    for(let k=1;k<z;k++){
+      const[dx,dy]=pbcDist(Vx[verts[k]]-cx0,Vy[verts[k]]-cy0);
+      sumDx+=dx;sumDy+=dy;
+    }
+    const centX=wrapPos(cx0+sumDx/z),centY=wrapPos(cy0+sumDy/z);
+    // ── Unfold polygon around centroid ───────────────────────────────────
+    const px=new Float64Array(z),py=new Float64Array(z);
+    for(let k=0;k<z;k++){
+      const[dx,dy]=pbcDist(Vx[verts[k]]-centX,Vy[verts[k]]-centY);
+      px[k]=centX+dx;py[k]=centY+dy;
+    }
+    // ── Draw at all 9 PBC shifts whose centroid falls within [0,L) ───────
+    // centroid-based check: exactly ONE shift passes (the canonical one);
+    // drawing the polygon there ensures a seamless tile with no slivers.
+    const col=cellColor(areas[i],perims[i]);
+    for(let sy=-1;sy<=1;sy++){
+      for(let sx=-1;sx<=1;sx++){
+        const cxs=centX+sx*L,cys=centY+sy*L;
+        if(cxs<0||cxs>=L||cys<0||cys>=L)continue;
+        ctxM.beginPath();
+        ctxM.moveTo((px[0]+sx*L)*sc,MAIN_H-(py[0]+sy*L)*sc);
+        for(let k=1;k<z;k++)ctxM.lineTo((px[k]+sx*L)*sc,MAIN_H-(py[k]+sy*L)*sc);
+        ctxM.closePath();
+        ctxM.fillStyle=col;ctxM.fill();
+        ctxM.strokeStyle='rgba(90,60,30,0.35)';ctxM.lineWidth=0.9;ctxM.stroke();
+      }
+    }
+  }
+  ctxM.strokeStyle='#d0c9c0';ctxM.lineWidth=1;ctxM.strokeRect(0,0,MAIN_W,MAIN_H);
+}
+
+// ── Time-series plot (semilog-x: log time axis, linear y) ────────────────────
+function renderPlot(ctx,xArr,yArr,title,yLabel,lineColor){
+  ctx.clearRect(0,0,PLOT_W,PLOT_H);
+  ctx.fillStyle='#faf8f4';ctx.fillRect(0,0,PLOT_W,PLOT_H);
+  // Skip t≤0 (undefined on log axis)
+  let s=0;while(s<xArr.length&&xArr[s]<=0)s++;
+  if(xArr.length-s<2)return;
+  const mg={l:52,r:10,t:20,b:36};
+  const pw=PLOT_W-mg.l-mg.r,ph=PLOT_H-mg.t-mg.b;
+  // ── X axis: log scale ─────────────────────────────────────────────────────
+  const lx0=Math.log10(xArr[s]),lx1=Math.log10(xArr[xArr.length-1]);
+  if(lx1-lx0<1e-6)return;
+  const gx=x=>mg.l+(Math.log10(x)-lx0)/(lx1-lx0)*pw;
+  // ── Y axis: linear ────────────────────────────────────────────────────────
+  let yMn=yArr[s],yMx=yArr[s];
+  for(let i=s;i<yArr.length;i++){if(yArr[i]<yMn)yMn=yArr[i];if(yArr[i]>yMx)yMx=yArr[i];}
+  const ySpan=yMx-yMn,yPad=Math.max(1e-6,ySpan*0.1);
+  yMn=Math.max(0,yMn-yPad);yMx+=yPad;
+  const gy=y=>mg.t+ph-(y-yMn)/(yMx-yMn)*ph;
+  // ── Draw frame ────────────────────────────────────────────────────────────
+  ctx.strokeStyle='#c8c0b6';ctx.lineWidth=0.8;ctx.strokeRect(mg.l,mg.t,pw,ph);
+  // ── Log-decade x ticks ────────────────────────────────────────────────────
+  const expLo=Math.floor(lx0),expHi=Math.ceil(lx1);
+  ctx.font='11px "Courier New"';ctx.textAlign='center';
+  for(let e=expLo;e<=expHi;e++){
+    // Minor ticks: 2-9 ×decade
+    for(let m=1;m<=9;m++){
+      const tv=m*Math.pow(10,e);
+      if(tv<xArr[s]||tv>xArr[xArr.length-1])continue;
+      const xp=gx(tv);if(xp<mg.l||xp>mg.l+pw)continue;
+      const isMajor=(m===1);
+      ctx.strokeStyle=isMajor?'#d8d0c8':'#ede8e2';ctx.lineWidth=isMajor?0.6:0.35;
+      ctx.beginPath();ctx.moveTo(xp,mg.t);ctx.lineTo(xp,mg.t+ph);ctx.stroke();
+      if(isMajor){
+        // Tick stub
+        ctx.strokeStyle='#c8c0b6';ctx.lineWidth=0.8;
+        ctx.beginPath();ctx.moveTo(xp,mg.t+ph);ctx.lineTo(xp,mg.t+ph+3);ctx.stroke();
+        // Label: 0.01, 0.1, 1, 10, 100, ...
+        const lbl=e>=0?String(Math.round(tv)):(e===-1?'0.1':'0.01');
+        ctx.fillStyle='#8a7868';ctx.fillText(lbl,xp,mg.t+ph+14);
+      }
+    }
+  }
+  // ── Linear y ticks ────────────────────────────────────────────────────────
+  ctx.textAlign='right';
+  for(let k=0;k<=4;k++){
+    const sv=yMn+k*(yMx-yMn)/4,yp=gy(sv);
+    if(yp<mg.t-4||yp>mg.t+ph+4)continue;
+    ctx.fillStyle='#8a7868';ctx.font='11px "Courier New"';
+    const lbl=yMx>999?Math.round(sv).toString():yMx>9?sv.toFixed(1):sv.toFixed(2);
+    ctx.fillText(lbl,mg.l-4,yp+4);
+    ctx.strokeStyle='#ddd6cc';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(mg.l-2,yp);ctx.lineTo(mg.l,yp);ctx.stroke();
+  }
+  // ── Data line (subsample if dense — keep ≤1200 visible segments) ─────────
+  const total=xArr.length-s;
+  const stride=Math.max(1,Math.floor(total/1200));
+  ctx.beginPath();
+  let first=true;
+  for(let i=s;i<xArr.length;i+=stride){
+    const xp=gx(xArr[i]),yp=gy(yArr[i]);
+    if(first){ctx.moveTo(xp,yp);first=false;}else ctx.lineTo(xp,yp);
+  }
+  // Always connect the very last point
+  {const n=xArr.length-1;if((n-s)%stride!==0)ctx.lineTo(gx(xArr[n]),gy(yArr[n]));}
+  ctx.strokeStyle=lineColor;ctx.lineWidth=1.6;ctx.lineJoin='round';ctx.stroke();
+  // Last-point dot
+  {const n=xArr.length-1;
+   ctx.beginPath();ctx.arc(gx(xArr[n]),gy(yArr[n]),3,0,2*Math.PI);
+   ctx.fillStyle='#c47a2b';ctx.fill();}
+  // ── Axis labels ───────────────────────────────────────────────────────────
+  ctx.fillStyle='#7a6e64';ctx.font='13px "DM Sans"';ctx.textAlign='center';
+  ctx.fillText('t  (log scale)',mg.l+pw/2,PLOT_H-4);
+  ctx.save();ctx.translate(13,mg.t+ph/2);ctx.rotate(-Math.PI/2);ctx.fillText(yLabel,0,0);ctx.restore();
+  ctx.fillStyle='#8a7868';ctx.font='12px "DM Sans"';ctx.textAlign='left';
+  ctx.fillText(title,mg.l+2,mg.t-5);
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function updateStats(areas,perims){
+  document.getElementById('sT').textContent=simTime.toFixed(2);
+  document.getElementById('sV').textContent=lastMeanV.toFixed(4);
+  document.getElementById('sT1').textContent=totalT1;
+  document.getElementById('sStep').textContent=stepCount;
+  let meanQ=0;
+  for(let i=0;i<N;i++)if(areas[i]>1e-6)meanQ+=perims[i]/Math.sqrt(areas[i]);
+  document.getElementById('sQ').textContent=(meanQ/N).toFixed(3);
+  document.getElementById('sNv').textContent=Nvert;
+}
+
+function render(areas,perims,FX,FY){
+  renderCells(areas,perims);
+  renderPlot(ctxMsd,tHistory,msdHistory,'Cell MSD','⟨Δr²⟩','#5094cc');
+  renderPlot(ctxT,tHistory,t1History,'Cumulative T1 events','T1 count','#c47a2b');
+  updateStats(areas,perims);
+}
+
+// ── Animation loop ────────────────────────────────────────────────────────────
+function runLoop(token){
+  if(!running||paused||token!==runToken)return;
+  let areas,perims,FX,FY;
+  for(let s=0;s<SPF;s++){const r=simStep();areas=r.areas;perims=r.perims;FX=r.FX;FY=r.FY;}
+  render(areas,perims,FX,FY);
+  document.getElementById('statusLine').textContent=
+    `t=${simTime.toFixed(2)}  T1s=${totalT1}  p₀=${p0Val.toFixed(2)}  B=${B_val.toFixed(1)}`;
+  setTimeout(()=>runLoop(token),0);
+}
+
+// ── UI wiring ─────────────────────────────────────────────────────────────────
+const bRun=document.getElementById('bRun'),
+      bPause=document.getElementById('bPause'),
+      bReset=document.getElementById('bReset');
+function slider(sid,lid,dec,cb){
+  const s=document.getElementById(sid),l=document.getElementById(lid);
+  s.addEventListener('input',()=>{const v=+s.value;l.textContent=v.toFixed(dec);cb&&cb(v);});
+}
+slider('sv','lv',2,v=>{v0Val=v;});
+slider('sp','lp',2,v=>{p0Val=v;});
+slider('sb','lb',2,v=>{B_val=v;});
+bRun.addEventListener('click',function(){
+  if(!running){
+    running=true;paused=false;
+    this.textContent='■  Stop';this.classList.add('live');bPause.disabled=false;
+    const tok=++runToken;setTimeout(()=>runLoop(tok),0);
+  }else{
+    running=false;this.textContent='▶  Run';this.classList.remove('live');
+    bPause.textContent='Pause';bPause.disabled=true;
+  }
+});
+bPause.addEventListener('click',function(){
+  paused=!paused;this.textContent=paused?'Resume':'Pause';
+  if(!paused){const tok=++runToken;setTimeout(()=>runLoop(tok),0);}
+});
+bReset.addEventListener('click',function(){
+  running=false;paused=false;
+  bRun.textContent='▶  Run';bRun.classList.remove('live');
+  bPause.textContent='Pause';bPause.disabled=true;
+  runToken++;
+  restoreBaseline(Date.now()&0xffffff);
+  const{areas,perims}=getCellShape();
+  const{FX,FY}=getVMForce(areas,perims,p0Val);
+  render(areas,perims,FX,FY);
+  document.getElementById('statusLine').textContent='Ready — press Run to start.';
+});
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+setupCanvases();
+ctxM.fillStyle='#f0ede8';ctxM.fillRect(0,0,MAIN_W,MAIN_H);
+ctxM.fillStyle='#8a7868';ctxM.font='15px "DM Sans"';ctxM.textAlign='center';
+ctxM.fillText('Computing relaxed configuration…',MAIN_W/2,MAIN_H/2-8);
+ctxM.font='12px "DM Sans"';ctxM.fillStyle='#b0a898';
+ctxM.fillText('(FIRE minimization — one-time setup)',MAIN_W/2,MAIN_H/2+14);
+
+setTimeout(()=>{
+  initSim();
+  bRun.disabled=false;bReset.disabled=false;
+  const{areas,perims}=getCellShape();
+  const{FX,FY}=getVMForce(areas,perims,p0Val);
+  render(areas,perims,FX,FY);
+  document.getElementById('statusLine').textContent='Ready — press Run to start.';
+},80);
+</script>
+</body>
+</html>
