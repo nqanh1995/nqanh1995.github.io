@@ -7,115 +7,62 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:#f7f4ef; --surface:#ffffff; --ink:#1a1a1a; --muted:#6b6458;
-      --accent:#7b3f00; --accent2:#c47a2b; --border:#e0d9d0;
-      --serif:'EB Garamond',Georgia,serif; --sans:'DM Sans',system-ui,sans-serif;
+    :root{
+      --bg:#f7f4ef;--surface:#ffffff;--ink:#1a1a1a;--muted:#6b6458;
+      --accent:#7b3f00;--accent2:#c47a2b;--border:#e0d9d0;
+      --serif:'EB Garamond',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
-    body{background:var(--bg);color:var(--ink);font-family:var(--sans);
-      font-size:16px;line-height:1.7;min-height:100vh;}
+    body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.7;min-height:100vh;}
 
-    /* NAV */
-    nav{position:sticky;top:0;z-index:100;background:rgba(247,244,239,0.92);
+    nav{position:sticky;top:0;z-index:100;background:rgba(247,244,239,0.94);
       backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:14px 0;}
     nav ul{list-style:none;display:flex;gap:32px;max-width:1400px;margin:0 auto;padding:0 40px;}
     nav a{font-size:13px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;
       color:var(--muted);text-decoration:none;transition:color 0.2s;}
-    nav a:hover{color:var(--accent);}
-    nav a.active{color:var(--accent);}
+    nav a:hover,nav a.active{color:var(--accent);}
 
-    /* PAGE WRAPPER — full width */
     .page{max-width:1400px;margin:0 auto;padding:0 40px 80px;}
 
-    /* PAGE HEADER */
-    .page-header{padding:52px 0 40px;border-bottom:1px solid var(--border);margin-bottom:48px;}
-    .page-header h1{font-family:var(--serif);font-size:2.4em;font-weight:500;
-      color:var(--ink);margin-bottom:10px;}
-    .page-header p{font-family:var(--serif);font-size:1.06em;color:var(--muted);
-      max-width:640px;line-height:1.8;}
+    .page-header{padding:14px 0 16px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+    .page-header h1{font-family:var(--serif);font-size:2.4em;font-weight:500;margin-bottom:6px;}
+    .page-header p{font-family:var(--serif);font-size:1.06em;color:var(--muted);max-width:680px;line-height:1.8;}
 
-    /* 3-COLUMN GRID */
-    .models-grid{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:28px;
-      align-items:start;
-    }
+    .models-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:start;}
 
-    /* EACH COLUMN CARD */
-    .model-card{
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:8px;
-      overflow:hidden;
-      display:flex;
-      flex-direction:column;
-      transition:box-shadow 0.2s;
-    }
-    .model-card:hover{box-shadow:0 6px 28px rgba(0,0,0,0.08);}
+    .model-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+      display:flex;flex-direction:column;padding:28px;transition:box-shadow 0.2s;}
+    .model-card:hover{box-shadow:0 8px 32px rgba(0,0,0,0.07);}
 
-    /* CARD TOP: name + desc */
-    .card-top{padding:28px 28px 20px;}
+    .model-number{font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;
+      color:var(--accent2);margin-bottom:8px;}
+    .model-card h2{font-family:var(--serif);font-size:1.28em;font-weight:500;
+      color:var(--ink);line-height:1.3;margin-bottom:14px;}
+    .model-card .desc{font-family:var(--serif);font-size:0.97em;color:var(--muted);
+      line-height:1.8;margin-bottom:24px;}
 
-    .model-number{font-size:11px;font-weight:500;letter-spacing:0.14em;
-      text-transform:uppercase;color:var(--accent2);margin-bottom:10px;}
+    .apps-label{font-size:10.5px;font-weight:500;letter-spacing:0.13em;text-transform:uppercase;
+      color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:12px;}
+    .app-list{list-style:none;display:flex;flex-direction:column;gap:7px;margin-bottom:24px;}
+    .app-list li{display:flex;gap:9px;align-items:center;}
+    .app-dot{width:5px;height:5px;border-radius:50%;background:var(--accent2);flex-shrink:0;}
+    .app-text{font-size:13px;color:var(--ink);}
+    .app-text strong{font-weight:500;color:var(--accent);}
 
-    .card-top h2{font-family:var(--serif);font-size:1.35em;font-weight:500;
-      color:var(--ink);line-height:1.25;margin-bottom:12px;}
-
-    .card-top p{font-family:var(--serif);font-size:0.97em;color:var(--muted);
-      line-height:1.75;}
-
-    /* VIDEO */
-    .card-video{width:100%;aspect-ratio:4/3;background:#1a1a1a;
-      display:flex;align-items:center;justify-content:center;overflow:hidden;}
-    .card-video video{width:100%;height:100%;object-fit:cover;display:block;}
-    .video-placeholder{width:100%;height:100%;
-      background:linear-gradient(135deg,#e4ddd5 0%,#cec5bb 100%);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
-    .video-placeholder svg{color:#b5aca2;}
-    .video-placeholder span{font-size:11.5px;color:#b5aca2;letter-spacing:0.06em;
-      text-transform:uppercase;}
-
-    /* CARD BOTTOM: topics + button */
-    .card-bottom{padding:20px 28px 28px;display:flex;flex-direction:column;gap:16px;flex:1;}
-
-    .study-label{font-size:11px;font-weight:500;letter-spacing:0.1em;
-      text-transform:uppercase;color:var(--muted);}
-
-    .topics{display:flex;flex-wrap:wrap;gap:6px;}
-    .topic{font-size:11.5px;font-weight:500;letter-spacing:0.03em;padding:3px 10px;
-      border-radius:3px;background:#ede8e0;color:var(--muted);}
-
-    .launch-btn{display:inline-flex;align-items:center;justify-content:center;
+    .launch-btn{display:flex;align-items:center;justify-content:center;
       gap:8px;padding:11px 20px;background:var(--accent);color:#fff;
       font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:0.04em;
       text-decoration:none;border-radius:4px;margin-top:auto;
       transition:background 0.2s,transform 0.15s;}
     .launch-btn:hover{background:var(--accent2);transform:translateY(-1px);}
-    .launch-btn.soon{background:var(--bg);color:var(--muted);
-      border:1px solid var(--border);cursor:default;}
-    .launch-btn.soon:hover{background:var(--bg);transform:none;}
 
-    /* FOOTER */
     .footer-inner{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);
-      font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;
-      flex-wrap:wrap;gap:8px;}
+      font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
     .footer-inner a{color:var(--accent2);text-decoration:none;}
 
-    /* RESPONSIVE */
-    @media(max-width:900px){
-      .models-grid{grid-template-columns:1fr;}
-      .page{padding:0 24px 60px;}
-      nav ul{padding:0 24px;}
-    }
-    @media(min-width:901px) and (max-width:1100px){
-      .models-grid{grid-template-columns:repeat(3,1fr);gap:18px;}
-      .card-top{padding:20px 20px 16px;}
-      .card-bottom{padding:16px 20px 20px;}
-    }
+    @media(max-width:960px){.models-grid{grid-template-columns:1fr;}.page{padding:0 24px 60px;}nav ul{padding:0 24px;}}
+    @media(min-width:961px) and (max-width:1200px){.models-grid{grid-template-columns:repeat(3,1fr);gap:18px;}}
   </style>
 </head>
 <body>
@@ -133,111 +80,68 @@
 
   <div class="page-header">
     <h1>Simulations</h1>
-    <p>Explore interactive physics-based models of biological tissue. Adjust parameters in real time and watch the tissue respond.</p>
+    <p>Interactive physics-based models of confluent biological tissue. Each simulation runs directly in the browser — adjust parameters in real time and observe how the tissue responds.</p>
   </div>
 
   <div class="models-grid">
 
     <!-- MODEL 1 -->
     <div class="model-card">
-      <div class="card-top">
-        <p class="model-number">Model 01 · Voronoi · Simple Shear</p>
-        <h2>2D Voronoi Model Under Shear</h2>
-        <p>A confluent tissue model where cell shapes are defined by Voronoi tessellation and subjected to simple shear. Explore how tissues yield, flow, and remember mechanical history.</p>
-      </div>
+      <p class="model-number">Model 01 · Quasi-Static · Simple Shear</p>
+      <h2>2D Voronoi Tissue Under Simple Shear</h2>
+      <p class="desc">A quasi-static (AQS) model of a confluent monolayer deformed in simple shear. Cell shapes emerge from the Voronoi tessellation of N = 100 particle centers. Each cell resists area changes, capturing cell incompressibility, and has a preferred perimeter set by the competition between cortical contractility and line tension at junctions. The ratio of the preferred perimeter to the square root of the preferred area, p₀, is the key control parameter: below a critical value the tissue behaves as a rigid solid; above it the tissue is fluid. At each strain step of δγ = 0.001, particle positions are sheared affinely under Lees–Edwards periodic boundary conditions and relaxed to a local energy minimum via FIRE minimization. Yielding is purely mechanical — there is no thermal noise — and occurs through system-spanning cascades of T1 neighbor exchanges.</p>
 
-      <div class="card-video">
-        <video autoplay loop muted playsinline src="QSmovie_p3.88dgamma0.005seed28final5online-video-cutter.com.mp4"></video>
-      </div>
-
-      <div class="card-bottom">
-        <div>
-          <p class="study-label">Can be used to study</p>
-          <div class="topics" style="margin-top:8px;">
-            <span class="topic">Tissue Plasticity</span>
-            <span class="topic">Avalanches & Yield Stress</span>
-            <span class="topic">Mechanical Memory</span>
-            <span class="topic">Tissue Rheology</span>
-            <span class="topic">Stress Relaxation</span>
-            <span class="topic">Fatigue & Cyclic Loading</span>
-          </div>
-        </div>
-        <a class="launch-btn soon" href="sim_voronoi_shear.html">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Coming Soon
-        </a>
-      </div>
+      <p class="apps-label">What you can study</p>
+      <ul class="app-list">
+        <li><span class="app-dot"></span><span class="app-text"><strong>Yield stress and the jamming transition</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>T1 avalanche statistics</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Mechanical memory and oscillatory training</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Stress–strain curves and hysteresis</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Fatigue under cyclic loading</strong></span></li>
+      </ul>
+      <a class="launch-btn" href="sim_voronoi_shear.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Launch Simulation
+      </a>
     </div>
 
     <!-- MODEL 2 -->
     <div class="model-card">
-      <div class="card-top">
-        <p class="model-number">Model 02 · Vertex Model · Cell–Cell Adhesion</p>
-        <h2>Vertex Model with Dual-Role Cell–Cell Adhesion</h2>
-        <p>A 2D vertex model where cell–cell adhesion plays a dual mechanical role — reducing interfacial tension while introducing viscous dissipation through bond turnover.</p>
-      </div>
+      <p class="model-number">Model 02 · Active Vertex Model · Dual-Role Adhesion</p>
+      <h2>Vertex Model with Dual-Role Cell–Cell Adhesion</h2>
+      <p class="desc">A 2D active vertex model of N = 100 polygonal cells whose edges meet at trivalent vertices. Each cell resists area changes, capturing incompressibility, and has a preferred perimeter governed by the balance of cortical contractility and line tension; the ratio of target perimeter to cell size, p₀, controls where the tissue sits relative to the rigidity transition. Cell–cell adhesion enters through two independent channels: <em>energetic adhesion</em> (p₀) lowers the effective line tension at shared junctions, shifting the tissue toward or away from the fluid state; <em>viscous adhesion</em> (B) introduces frictional resistance to differential sliding at junctions, slowing relative motion without altering the equilibrium cell shape. This decoupling reproduces the double role of E-cadherin in real epithelia, where adhesion simultaneously maintains mechanical integrity and resists junction remodeling.</p>
 
-      <div class="card-video">
-        <!-- Replace with: <video autoplay loop muted playsinline src="video_vertex_adhesion.mp4"></video> -->
-        <div class="video-placeholder">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>Preview video</span>
-        </div>
-      </div>
-
-      <div class="card-bottom">
-        <div>
-          <p class="study-label">Can be used to study</p>
-          <div class="topics" style="margin-top:8px;">
-            <span class="topic">Role of Adhesion in Tissue Fluidity</span>
-            <span class="topic">Tissue Rheology</span>
-            <span class="topic">Jamming & Unjamming</span>
-            <span class="topic">Collective Migration</span>
-            <span class="topic">Adhesion Heterogeneity</span>
-            <span class="topic">Rigidity Transitions</span>
-          </div>
-        </div>
-        <a class="launch-btn soon" href="sim_vertex_adhesion.html">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Coming Soon
-        </a>
-      </div>
+      <p class="apps-label">What you can study</p>
+      <ul class="app-list">
+        <li><span class="app-dot"></span><span class="app-text"><strong>Dual role of adhesion in tissue fluidity</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Jamming and unjamming transitions</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Viscous dissipation and effective tissue viscosity</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Collective cell migration</strong></span></li>
+      </ul>
+      <a class="launch-btn" href="sim_vertex_adhesion.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Launch Simulation
+      </a>
     </div>
 
     <!-- MODEL 3 -->
     <div class="model-card">
-      <div class="card-top">
-        <p class="model-number">Model 03 · Active Voronoi · Motility & Turnover</p>
-        <h2>Active Cells with Voronoi Geometry</h2>
-        <p>A confluent tissue model where polygonal cell shapes emerge from Voronoi tessellation of self-propelled particle centers. Tune motility, noise, and cell turnover rates.</p>
-      </div>
+      <p class="model-number">Model 03 · Active Brownian Particles · Homeostasis</p>
+      <h2>Active Cells with Voronoi Geometry and Homeostasis</h2>
+      <p class="desc">N₀ = 900 active Brownian particles evolve in a 30σ × 30σ periodic domain. Each particle self-propels at speed v₀ along a slowly rotating orientation with rotational diffusion Dr, and repels neighbors through a soft contact force. Cell shapes emerge from the Voronoi tessellation of particle centers — no energy function governs cell geometry; shape is a purely geometric consequence of packing. Homeostasis is enforced stochastically: a cell divides along its principal inertia axis when its area becomes sufficiently large, and undergoes apoptosis when it becomes too small, with rates k_div and k_apo set by the user.</p>
 
-      <div class="card-video">
-        <!-- Replace with: <video autoplay loop muted playsinline src="video_active_tissue.mp4"></video> -->
-        <div class="video-placeholder">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span>Preview video</span>
-        </div>
-      </div>
-
-      <div class="card-bottom">
-        <div>
-          <p class="study-label">Can be used to study</p>
-          <div class="topics" style="margin-top:8px;">
-            <span class="topic">Effect of Division & Apoptosis on Cell Size</span>
-            <span class="topic">Cell Shape Distributions</span>
-            <span class="topic">Collective Motility</span>
-            <span class="topic">Confluent Tissue Dynamics</span>
-          </div>
-        </div>
-        <a class="launch-btn" href="sim_active_tissue.html">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          Launch Simulation
-        </a>
-      </div>
+      <p class="apps-label">What you can study</p>
+      <ul class="app-list">
+        <li><span class="app-dot"></span><span class="app-text"><strong>Cell area distributions and their statistical form</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Effect of motility on spatial order and heterogeneity</strong></span></li>
+      </ul>
+      <a class="launch-btn" href="sim_active_tissue.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Launch Simulation
+      </a>
     </div>
 
-  </div><!-- end grid -->
+  </div>
 
   <div class="footer-inner">
     <span>© 2026 Anh Q. Nguyen</span>
