@@ -89,7 +89,7 @@
     <div class="model-card">
       <p class="model-number">Model 01 · Quasi-Static · Simple Shear</p>
       <h2>2D Voronoi Tissue Under Simple Shear</h2>
-      <p class="desc">A quasi-static (AQS) model of a confluent monolayer deformed in simple shear. Cell shapes emerge from the Voronoi tessellation of N = 100 particle centers. Each cell resists area changes, capturing cell incompressibility, and has a preferred perimeter set by the competition between cortical contractility and line tension at junctions. The ratio of the preferred perimeter to the square root of the preferred area, p₀, is the key control parameter: below a critical value the tissue behaves as a rigid solid; above it the tissue is fluid. At each strain step of δγ = 0.001, particle positions are sheared affinely under Lees–Edwards periodic boundary conditions and relaxed to a local energy minimum via FIRE minimization. Yielding is purely mechanical — there is no thermal noise — and occurs through system-spanning cascades of T1 neighbor exchanges.</p>
+      <p class="desc">A quasi-static (AQS) model of a confluent monolayer deformed in simple shear. Cell shapes emerge from the Voronoi tessellation of N = 100 particle centers. Each cell resists area changes, capturing cell incompressibility, and has a preferred perimeter set by the competition between cortical contractility and line tension at junctions. The ratio of the preferred perimeter to the square root of the preferred area, p₀, is the key parameter that control tissue rigidity. At each strain step of δγ = 0.001, particle positions are sheared affinely and relaxed to a local energy minimum. Yielding is purely mechanical — there is no thermal noise — and occurs through system-spanning cascades of T1 neighbor exchanges.</p>
 
       <p class="apps-label">What you can study</p>
       <ul class="app-list">
@@ -109,7 +109,7 @@
     <div class="model-card">
       <p class="model-number">Model 02 · Active Vertex Model · Dual-Role Adhesion</p>
       <h2>Vertex Model with Dual-Role Cell–Cell Adhesion</h2>
-      <p class="desc">A 2D active vertex model of N = 100 polygonal cells whose edges meet at trivalent vertices. Each cell resists area changes, capturing incompressibility, and has a preferred perimeter governed by the balance of cortical contractility and line tension; the ratio of target perimeter to cell size, p₀, controls where the tissue sits relative to the rigidity transition. Cell–cell adhesion enters through two independent channels: <em>energetic adhesion</em> (p₀) lowers the effective line tension at shared junctions, shifting the tissue toward or away from the fluid state; <em>viscous adhesion</em> (B) introduces frictional resistance to differential sliding at junctions, slowing relative motion without altering the equilibrium cell shape. This decoupling reproduces the double role of E-cadherin in real epithelia, where adhesion simultaneously maintains mechanical integrity and resists junction remodeling.</p>
+      <p class="desc">A 2D active vertex model of N = 100 polygonal cells whose edges meet at trivalent vertices. Each cell resists area changes, capturing incompressibility, and has a preferred perimeter governed by the balance of cortical contractility and line tension; the ratio of target perimeter to cell size, p₀, controls where the tissue sits relative to the rigidity transition. Cell–cell adhesion enters through two independent channels: <em>energetic adhesion</em> (p₀) lowers the effective line tension at shared junctions; <em>viscous adhesion</em> (B) introduces frictional resistance to differential sliding at junctions, slowing relative motion. </p>
 
       <p class="apps-label">What you can study</p>
       <ul class="app-list">
@@ -133,7 +133,7 @@
       <p class="apps-label">What you can study</p>
       <ul class="app-list">
         <li><span class="app-dot"></span><span class="app-text"><strong>Cell area distributions and their statistical form</strong></span></li>
-        <li><span class="app-dot"></span><span class="app-text"><strong>Effect of motility on spatial order and heterogeneity</strong></span></li>
+        <li><span class="app-dot"></span><span class="app-text"><strong>Effect of motility, cell division and apoptosis on spatial order and heterogeneity</strong></span></li>
       </ul>
       <a class="launch-btn" href="sim_active_tissue.html">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
